@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Encuentra tu tarjeta de crédito</title>
+<style>
+:root{
+  --bg:#FFFFFF; --surface:#F1F6E4; --card:#FFFFFF; --ink:#222222; --muted:#53565A; --line:#D0D0CE;
+  --deep:#046A38; --green:#86BC25; --bar:#C4D68F; --bar-top:#046A38; --chip:#FFFFFF; --focus:#0076A8; --warn:#9A5B00; --warn-bg:#FFF4DC; --on-deep:#FFFFFF;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1A12; --surface:#16251A; --card:#132017; --ink:#E6E6E6; --muted:#A7A8AA; --line:#2B3B2F;
+    --deep:#86BC25; --green:#86BC25; --bar:#3E5A32; --bar-top:#86BC25; --chip:#16251A; --focus:#62B5E5; --warn:#F3C269; --warn-bg:#2E2511; --on-deep:#0F1A12; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1A12; --surface:#16251A; --card:#132017; --ink:#E6E6E6; --muted:#A7A8AA; --line:#2B3B2F;
+  --deep:#86BC25; --green:#86BC25; --bar:#3E5A32; --bar-top:#86BC25; --chip:#16251A; --focus:#62B5E5; --warn:#F3C269; --warn-bg:#2E2511; --on-deep:#0F1A12; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Aptos,"Segoe UI",system-ui,-apple-system,Helvetica,Arial,sans-serif;line-height:1.45}
+main{max-width:1120px;margin:0 auto;padding:26px 20px 60px}
+h1{font-size:clamp(1.6rem,3.2vw,2.3rem);line-height:1.15;margin:0 0 6px;letter-spacing:-.01em}
+h2{font-size:1.02rem;margin:0 0 10px}
+.lead{color:var(--muted);margin:0 0 18px;max-width:64ch}
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:22px}
+.tabs button{font:inherit;background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);padding:10px 14px;cursor:pointer;font-weight:600}
+.tabs button[aria-selected="true"]{color:var(--deep);border-bottom-color:var(--deep)}
+.tabs button:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.layout{display:grid;grid-template-columns:minmax(0,370px) minmax(0,1fr);gap:26px;align-items:start}
+@media (max-width:860px){.layout{grid-template-columns:1fr}}
+.panel{border:1px solid var(--line);background:var(--card);border-radius:6px;padding:18px}
+.field{margin-bottom:14px}
+.field>label,.field>.lab{display:block;font-weight:600;font-size:.92rem;margin-bottom:5px}
+.field small{display:block;color:var(--muted);font-size:.78rem;margin-top:3px}
+input[type=number],input[type=text],select,textarea{font:inherit;width:100%;color:var(--ink);background:var(--chip);border:1px solid var(--line);border-radius:6px;padding:8px 10px}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opts label{font-weight:500;font-size:.86rem;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--chip);border-radius:999px;padding:6px 12px;cursor:pointer}
+.opts input{accent-color:var(--deep);margin:0}
+.opts label:has(input:checked){border-color:var(--deep);background:var(--surface)}
+details{border-top:1px solid var(--line);padding-top:12px;margin-top:6px}
+summary{cursor:pointer;font-weight:600;font-size:.92rem}
+.crit{padding:8px 0}
+.crit label{display:flex;justify-content:space-between;font-weight:600;font-size:.88rem}
+.crit .val{color:var(--deep);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--deep);height:26px;margin:0}
+.btn{font:inherit;font-size:.88rem;color:var(--ink);background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:7px 14px;cursor:pointer}
+.btn:hover{border-color:var(--deep)}
+.btn.primary{background:var(--deep);border-color:var(--deep);color:var(--on-deep)}
+.best{border:2px solid var(--deep);border-radius:6px;background:var(--card);padding:18px 18px 16px;margin-bottom:14px}
+.best .kicker{color:var(--muted);font-size:.82rem;margin:0 0 2px}
+.best h3{margin:0;font-size:1.5rem;line-height:1.15}
+.best .aff{float:right;text-align:right;font-weight:700;font-size:2rem;color:var(--deep);line-height:1}
+.best .aff small{display:block;font-size:.72rem;font-weight:500;color:var(--muted)}
+.why{margin:12px 0 0;padding:0;list-style:none}
+.why li{padding:4px 0 4px 18px;position:relative;font-size:.92rem}
+.why li::before{content:"";position:absolute;left:2px;top:.85em;width:8px;height:8px;border-radius:50%;background:var(--deep)}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:14px 0 0}
+.fact{background:var(--surface);border-radius:4px;padding:8px 10px;font-size:.8rem;color:var(--muted)}
+.fact b{display:block;color:var(--ink);font-size:.98rem}
+.warn{margin:12px 0 0;background:var(--warn-bg);color:var(--warn);border-radius:4px;padding:8px 10px;font-size:.85rem}
+ol.list{list-style:none;margin:0;padding:0}
+.row{border:1px solid var(--line);background:var(--card);border-radius:6px;margin-bottom:8px}
+.row button.head{all:unset;display:grid;grid-template-columns:2em minmax(0,1fr) 3em;gap:10px;align-items:center;width:100%;padding:11px 14px;cursor:pointer;box-sizing:border-box}
+.row button.head:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:6px}
+.rank{font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.name{font-weight:650}.tag{font-weight:400;color:var(--muted);font-size:.78rem;margin-left:6px}
+.meter{height:7px;border-radius:4px;background:var(--surface);margin-top:6px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--bar);width:0;transition:width .25s ease}
+.row.top .meter i{background:var(--bar-top)}
+.score{font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.detail{display:none;padding:0 14px 14px;border-top:1px dashed var(--line)}
+.row.open .detail{display:block}
+.note{color:var(--muted);font-size:.86rem;margin:10px 0 8px}
+.cells{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+@media (min-width:560px){.cells{grid-template-columns:repeat(8,minmax(0,1fr))}}
+.cell{background:var(--surface);border-radius:4px;padding:6px 4px;text-align:center;font-size:.7rem;color:var(--muted)}
+.cell b{display:block;font-size:.98rem;color:var(--ink)}
+.chip-w{display:inline-block;margin-top:6px;font-size:.78rem;color:var(--warn);background:var(--warn-bg);border-radius:999px;padding:2px 9px}
+.sub{color:var(--muted);font-size:.86rem;margin:14px 0 8px}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:6px}
+table{border-collapse:collapse;width:100%;min-width:2300px;font-size:.82rem}
+th,td{padding:5px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+th{background:var(--surface);font-weight:600;position:sticky;top:0}
+td input,td select{padding:5px 6px;font-size:.82rem}
+td input[type=number]{width:78px}
+td input[data-f=incomeMin],td input[data-f=fee]{width:96px}
+td select{min-width:112px}
+td select[data-f=group]{min-width:150px}
+td.sc input{width:46px;text-align:center}
+td.nm input{min-width:150px}td.nt input{min-width:230px}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+textarea{min-height:130px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.76rem}
+.legal{margin-top:26px;color:var(--muted);font-size:.8rem;max-width:84ch}
+.theme{position:absolute;right:14px;top:calc(10px + env(safe-area-inset-top,0px));font:inherit;font-size:.8rem;background:none;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:4px 10px;cursor:pointer}
+@media (max-width:600px){main{padding-top:48px}}
+.metarow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:-6px 0 18px;color:var(--muted);font-size:.86rem}
+.chg{border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin-bottom:8px;background:var(--card)}
+.chg label{display:flex;gap:10px;align-items:flex-start;font-weight:600;font-size:.92rem;cursor:pointer}
+.chg ul{margin:6px 0 0 28px;padding:0;font-size:.84rem;color:var(--muted)}
+.chg li b{color:var(--ink)}
+.tag-add{font-size:.72rem;background:var(--surface);color:var(--deep);border-radius:999px;padding:1px 8px;margin-left:6px;font-weight:600}
+.okmsg{color:var(--deep)} .errmsg{color:var(--warn)}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.82rem;background:var(--surface);padding:1px 5px;border-radius:3px}
+pre{background:var(--surface);padding:10px 12px;border-radius:6px;overflow-x:auto;font-size:.78rem}
+.tiles{display:grid;gap:14px;margin-bottom:16px}
+.tile{border:1px solid var(--line);border-radius:6px;padding:16px;background:var(--card)}
+.tile.first{border:2px solid var(--deep)}
+.tile-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.tile-h .kick{color:var(--muted);font-size:.78rem;margin:0 0 2px}
+.tile-h h3{margin:0;font-size:1.3rem;line-height:1.15}
+.tile-h .aff{text-align:right;font-weight:700;font-size:1.9rem;color:var(--deep);line-height:1}
+.tile-h .aff small{display:block;font-size:.68rem;font-weight:500;color:var(--muted)}
+.pill{display:inline-block;font-size:.72rem;border-radius:999px;padding:1px 8px;margin:4px 6px 0 0;background:var(--surface);color:var(--muted)}
+.pill.basic{background:var(--warn-bg);color:var(--warn)}
+.tile-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:18px;margin-top:12px}
+@media(max-width:640px){.tile-grid{grid-template-columns:1fr}}
+.ben-h{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:0 0 6px;font-weight:600}
+ul.ben{list-style:none;margin:0 0 12px;padding:0}
+ul.ben li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:6px;padding:6px 0;border-top:1px solid var(--line);font-size:.88rem}
+ul.ben li:first-child{border-top:0}
+ul.ben .mk{font-weight:700;color:var(--deep)}
+ul.ben li.n{color:var(--muted)} ul.ben li.n .mk{color:var(--muted)}
+ul.ben b{display:block;font-size:.8rem}
+.costbox{background:var(--surface);border-radius:6px;padding:10px 12px;align-self:start}
+.cf{padding:6px 0;border-top:1px solid var(--line)} .cf:first-child{border-top:0;padding-top:0}
+.cf small{display:block;color:var(--muted);font-size:.72rem}
+.cf b{display:block;font-size:1.02rem}
+.cf em{font-style:normal;color:var(--muted);font-size:.72rem}
+.basic-note{background:var(--warn-bg);color:var(--warn);border-radius:4px;padding:8px 10px;font-size:.85rem;margin:0 0 10px}
+.row .sublin{display:block;color:var(--muted);font-size:.78rem;margin-top:2px;font-weight:400}
+.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 12px}
+.filters input[type=search]{flex:1 1 200px;min-width:0}
+.filters label{font-size:.86rem;color:var(--muted);display:inline-flex;gap:6px;align-items:center}
+.more{display:block;margin:6px auto 14px}
+dialog{border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);width:calc(100% - 28px);max-width:780px;max-height:88vh;padding:0;overflow:hidden}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+dialog[open]{display:flex;flex-direction:column}
+.dlg-h{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 18px 8px}
+.dlg-h h2{margin:0;font-size:1.15rem}
+.dlg-body{overflow-y:auto;padding:0 18px 18px}
+.seasons{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+.seasons button{font:inherit;font-size:.86rem;background:var(--chip);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer}
+.seasons button[aria-selected="true"]{background:var(--deep);border-color:var(--deep);color:var(--on-deep)}
+.promo{border:1px solid var(--line);border-radius:6px;padding:12px 14px;margin-bottom:10px;background:var(--card)}
+.promo h3{margin:0 0 2px;font-size:1rem}
+.promo .iss{font-size:.78rem;color:var(--muted)}
+.promo p{margin:6px 0;font-size:.88rem}
+.promo .cond{color:var(--muted);font-size:.8rem}
+.badge{display:inline-block;font-size:.7rem;font-weight:600;border-radius:999px;padding:1px 8px;margin-left:6px;background:var(--surface);color:var(--muted)}
+.badge.new{background:var(--deep);color:var(--on-deep)}
+.mchips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.mchips span{font-size:.74rem;background:var(--surface);border-radius:999px;padding:2px 8px}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){.meter i{transition:none}}
+</style>
+</head>
+<body>
+<button class="theme" id="theme" type="button" aria-label="Cambiar entre tema claro y oscuro">Tema</button>
+<main>
+<h1>Encuentra tu tarjeta de crédito</h1>
+<p class="lead">Responde unas preguntas sobre tu situación y la herramienta ordena más de 100 tarjetas de bancos y fintechs (el comparativo oficial de Banxico y CONDUSEF de junio de 2026 más fichas completas) según lo que más te importa, incluidos los beneficios que realmente usarías. Todos los datos se pueden editar en la pestaña “Editar tarjetas”.</p>
+<div class="metarow"><span id="meta-top"></span><button class="btn primary" id="goUpd" type="button">Actualizar datos</button><button class="btn" id="promoBtn" type="button">Promociones vigentes</button></div>
+<div class="tabs" role="tablist">
+  <button role="tab" id="t-find" aria-selected="true" aria-controls="p-find" type="button">Encuentra tu tarjeta</button>
+  <button role="tab" id="t-edit" aria-selected="false" aria-controls="p-edit" type="button">Editar tarjetas</button>
+  <button role="tab" id="t-upd" aria-selected="false" aria-controls="p-upd" type="button">Actualizar datos</button>
+</div>
+
+<section id="p-find" role="tabpanel" aria-labelledby="t-find">
+ <div class="layout">
+  <form class="panel" id="form" autocomplete="off" onsubmit="return false">
+   <h2>Cuéntanos de ti</h2>
+   <div class="field"><label for="age">Edad</label>
+     <select id="age"><option value="young">18 a 29 años</option><option value="adult" selected>30 a 59 años</option><option value="senior">60 años o más</option></select></div>
+   <div class="field"><label for="income">Ingreso mensual comprobable (pesos)</label>
+     <input type="number" id="income" inputmode="numeric" min="0" step="500" placeholder="Ej. 18000"><small>Se usa para avisarte si no cumples un ingreso mínimo publicado.</small></div>
+   <div class="field"><span class="lab">Historial de crédito</span>
+     <div class="opts" data-name="hist"><label><input type="radio" name="hist" value="none">No tengo</label><label><input type="radio" name="hist" value="some" checked>Poco o regular</label><label><input type="radio" name="hist" value="good">Bueno</label></div></div>
+   <div class="field"><span class="lab">¿Pagas el total cada mes?</span>
+     <div class="opts"><label><input type="radio" name="pay" value="always" checked>Siempre</label><label><input type="radio" name="pay" value="some">A veces dejo saldo</label><label><input type="radio" name="pay" value="never">Suelo financiar</label></div></div>
+   <div class="field" id="bal-wrap" hidden><label for="balance">Saldo que sueles dejar sin pagar (pesos)</label>
+     <input type="number" id="balance" inputmode="numeric" min="0" step="500" value="5000"><small>Sirve para estimar cuánto te costaría financiar con cada tarjeta.</small></div>
+   <div class="field"><span class="lab">Beneficios que usarías</span>
+     <div class="opts" id="benopts"></div><small>Marca solo los que usarías varias veces al año; los demás no cuentan como valor.</small></div>
+   <div class="field" id="benlevel-wrap"><label for="benlevel" style="display:flex;justify-content:space-between">Importancia de los beneficios <span class="val" id="benlevel-v" style="color:var(--deep);font-weight:700">3</span></label>
+     <input type="range" id="benlevel" min="0" max="5" step="1" value="3"><div class="scale" style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted)"><span>casi no me importan</span><span>son lo más importante</span></div></div>
+   <div class="field"><span class="lab">Prefieres atenderte…</span>
+     <div class="opts"><label><input type="radio" name="svc" value="branch">En sucursal</label><label><input type="radio" name="svc" value="both" checked>Ambos</label><label><input type="radio" name="svc" value="app">Desde la app</label></div></div>
+   <div class="field"><label class="lab" style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" id="hide" checked style="accent-color:var(--deep)">Dejar al final las tarjetas que no cumplan mis datos</label></div>
+   <details><summary>Ajustar la importancia a mano</summary>
+     <p class="sub" style="margin-top:8px">Se llenan solos con tus respuestas; muévelos si quieres afinar (0 a 5).</p>
+     <div id="sliders"></div></details>
+   <div class="tools"><button class="btn" id="reset" type="button">Borrar respuestas</button></div>
+  </form>
+
+  <div aria-live="polite">
+   <div class="filters"><input type="search" id="q" placeholder="Buscar por tarjeta o banco…" aria-label="Buscar tarjeta o banco"><label><input type="checkbox" id="onlyFull" style="accent-color:var(--deep)">Solo fichas completas</label><span class="sub" id="count" style="margin:0"></span></div>
+   <h2 style="margin:0 0 10px">Tus 3 mejores coincidencias</h2>
+   <div class="tiles" id="tiles"></div>
+   <h2 class="sub" style="margin:6px 0 8px">Más coincidencias, de mayor a menor afinidad</h2>
+   <ol class="list" id="results"></ol>
+   <button class="btn more" id="more" type="button" hidden>Mostrar más tarjetas</button>
+   <div id="out-wrap" hidden><p class="sub">No cumplen con tus datos (ingreso o historial)</p><ol class="list" id="out"></ol></div>
+  </div>
+ </div>
+</section>
+
+<section id="p-edit" role="tabpanel" aria-labelledby="t-edit" hidden>
+  <p class="lead" style="margin-bottom:10px">Cambia cualquier dato: CAT, anualidad, ingreso mínimo, historial, notas y los ocho puntajes (1 a 5). Agrega o quita tarjetas. Los cambios se reflejan al instante en la pestaña anterior y se guardan en este navegador.</p>
+  <div class="tools">
+    <button class="btn primary" id="add" type="button">Agregar tarjeta</button>
+    <button class="btn" id="restore" type="button">Restaurar datos originales</button>
+    <button class="btn" id="export" type="button">Exportar datos (JSON)</button>
+    <button class="btn" id="import" type="button">Cargar datos pegados</button>
+  </div>
+  <div class="filters"><input type="search" id="edq" placeholder="Buscar tarjeta o banco en la tabla…" aria-label="Buscar en la tabla"><span class="sub" id="edcount" style="margin:0"></span></div>
+  <div class="scroll" style="max-height:70vh"><table id="tbl"><thead></thead><tbody></tbody></table></div>
+  <p class="sub">Intercambiar datos: usa “Exportar” para ver el JSON, cópialo y guárdalo; para cargarlo, pégalo aquí y presiona “Cargar datos pegados”.</p>
+  <textarea id="json" spellcheck="false" aria-label="Datos en formato JSON"></textarea>
+  <p class="sub" id="msg" role="status"></p>
+</section>
+
+<section id="p-upd" role="tabpanel" aria-labelledby="t-upd" hidden>
+  <p class="lead" style="margin-bottom:14px">Trae datos nuevos (CAT, anualidad, ingreso mínimo, beneficios, notas) desde un archivo de datos. Antes de aplicar nada verás qué cambia y podrás aceptar o descartar cada cambio.</p>
+  <div class="panel" style="margin-bottom:16px"><h2>Estado de los datos</h2><p id="meta-txt" style="margin:0"></p></div>
+  <div class="layout">
+    <div>
+      <div class="panel" style="margin-bottom:16px">
+        <h2>1. Refrescar desde la API o un enlace</h2>
+        <div class="field"><label for="feedUrl">Dirección de la API o enlace al archivo de datos (.json)</label>
+          <input type="text" id="feedUrl" inputmode="url" placeholder="https://…/tarjetas_actualizadas.json">
+          <small>La API (<code>api_tarjetas.py</code>) visita por ti Banxico, los bancos y fintechs y te devuelve los datos. Funciona al abrir este buscador desde la propia API o desde el HTML descargado. En la versión publicada en línea el navegador bloquea esta conexión: usa la opción 2.</small></div>
+        <div class="tools" style="margin:0"><button class="btn primary" id="fetchFeed" type="button">Refrescar ahora</button></div>
+      </div>
+      <div class="panel">
+        <h2>2. Cargar un archivo</h2>
+        <div class="field"><label for="feedFile">Archivo de datos (.json)</label><input type="file" id="feedFile" accept=".json,application/json"></div>
+        <small style="color:var(--muted)">Funciona siempre, también en la versión publicada. Acepta el archivo que genera el script y el que exportas desde “Editar tarjetas”.</small>
+      </div>
+      <p class="sub" id="updMsg" role="status"></p>
+    </div>
+    <div class="panel"><h2>Cambios detectados</h2>
+      <div id="diff"><p class="sub" style="margin:0">Todavía no has cargado datos.</p></div>
+      <div class="tools" id="diffBtns" hidden><button class="btn primary" id="applyDiff" type="button">Aplicar los seleccionados</button><button class="btn" id="dropDiff" type="button">Descartar</button></div>
+    </div>
+  </div>
+  <details style="margin-top:18px"><summary>Cómo iniciar la API (una sola vez por sesión)</summary>
+    <pre>pip install pypdf
+python api_tarjetas.py</pre>
+    <p class="sub">Después abre <code>http://127.0.0.1:8765</code> en el navegador: el buscador se sirve desde la API y el botón “Refrescar ahora” ya apunta a ella. La API guarda el último resultado, respeta una consulta real cada 5 minutos y solo lee páginas públicas. Lee el comparativo oficial de Banxico y CONDUSEF y las páginas de Costco Banamex, HSBC Viva, Openbank y Plata. Las promociones salen de <code>promos.json</code> (se muestran solo las vigentes por fecha) y, si tienen página de referencia, la API confirma que todavía la mencione. Si una fuente cambia de formato, lo avisa y conserva el dato anterior.</p>
+    <p class="sub">También acepta archivos con este formato:</p>
+    <pre>{ "updated": "2026-11-15", "notice": "Texto opcional",
+  "cards": [ { "name": "Nu México", "catLow": 152.0, "catHigh": 152.0 } ],
+  "promos": [ { "id": "banco-promo", "issuer": "BBVA", "cards": "BBVA", "title": "…", "detail": "…",
+               "start": "2026-11-13", "end": "2026-11-17" } ] }</pre>
+  </details>
+</section>
+
+<dialog id="promoDlg" aria-labelledby="promoTitle">
+  <div class="dlg-h"><h2 id="promoTitle">Promociones vigentes</h2><button class="btn" id="promoClose" type="button">Cerrar</button></div>
+  <div class="dlg-body">
+    <p class="sub" id="promoAsOf" style="margin:0 0 8px;font-weight:600"></p>
+    <p class="sub" id="promoNotice" style="margin:0 0 10px"></p>
+    <label class="sub" style="display:flex;gap:8px;align-items:center;margin:0 0 12px"><input type="checkbox" id="promoMine" checked style="accent-color:var(--deep)">Mostrar solo las que aplican a mis 10 mejores coincidencias</label>
+    <div id="promoList"></div>
+    <p class="sub" style="margin-top:12px">Solo se muestran promociones con fecha vigente hoy. Casi todas piden registro previo, montos mínimos y comercios participantes. Confirma los términos con el banco antes de comprar.</p>
+  </div>
+</dialog>
+
+<p class="legal">Cómo se calcula: la afinidad (0 a 100) es el promedio de los puntajes de cada tarjeta (1 a 5) ponderado por la importancia que le das a cada criterio. Los beneficios que marcas se miden como la parte de ellos que la tarjeta documenta (un beneficio no marcado en la tabla no significa que no exista) y pesan según la importancia que les asignas. Los puntajes con asterisco son estimaciones sin dato publicado confiable; sucursales y app son juicios de la guía. Datos al 27 de octubre de 2026 (CAT oficial de Banxico y CONDUSEF con datos reportados a junio de 2026); el CAT depende de tu perfil y límite. Las tarjetas con “ficha básica” solo traen CAT y comisión oficiales, sin beneficios documentados. El costo estimado usa el CAT publicado (mínimo y máximo) sobre el saldo que indicas, o la anualidad si pagas el total; no incluye cashback ni puntos. Información general: no es una recomendación personalizada ni una oferta de crédito. Confirma siempre las condiciones vigentes con el emisor.</p>
+</main>
+<script>
+const DEFAULT = {"criteria": [{"k": "cat", "label": "CAT bajo", "hint": "Si a veces financias, el costo anual total de la tarjeta"}, {"k": "fee", "label": "Anualidad baja", "hint": "Lo que pagas al año aunque no uses la línea"}, {"k": "rew", "label": "Cashback y recompensas", "hint": "Dinero o puntos por tus compras"}, {"k": "msi", "label": "Meses sin intereses", "hint": "Compras grandes a meses (por ejemplo, Buen Fin)"}, {"k": "trip", "label": "Viajes y seguros", "hint": "Salas VIP, seguros de viaje, hotel o asistencia"}, {"k": "ok", "label": "Fácil de aprobar", "hint": "Sin historial o con requisitos de ingreso bajos"}, {"k": "branch", "label": "Sucursales", "hint": "Atención presencial cuando la necesitas"}, {"k": "app", "label": "App y control digital", "hint": "Bloquear tarjeta, ver gastos y pagar desde el celular"}], "cards": [{"name": "Volaris INVEX", "group": "General", "scores": [5, 5, 3, 3, 3, 3, 2, 3], "est": [3, 5, 6, 7], "perks": ["air", "cash"], "perkText": {"cash": "1% de bonificación en el monedero Volaris", "air": "Vuelo de bienvenida sin tarifa y maleta documentada gratis"}, "issuer": "INVEX", "basic": false, "tier": "", "catLow": 28.7, "catHigh": 50.9, "fee": 0, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of", "note": "CAT oficial de 28.7% a 50.9% según tu límite; $0 de comisión; vuelo de bienvenida y maleta"}, {"name": "Hey Banco", "group": "General", "scores": [5, 4, 4, 4, 1, 4, 3, 5], "est": [], "perks": ["cash", "msi", "perks"], "perkText": {"cash": "Cashback de 5% a 20% en campañas con comercios; exige anualidad (cerca de $600)", "msi": "Meses sin intereses en comercios participantes", "perks": "Campañas Hey Days y supercashbacks por categoría"}, "issuer": "Banregio", "basic": false, "tier": "", "catLow": 30.9, "catHigh": 64.7, "fee": 600, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of", "note": "CAT oficial de 30.9% a 64.7% según tu límite; reporta $600 de comisión a Banxico y el cashback exige anualidad"}, {"name": "Santander LikeU", "group": "General y jóvenes", "scores": [2, 4, 5, 3, 1, 3, 4, 5], "est": [3, 4, 5], "perks": ["cash"], "perkText": {"cash": "Hasta 6% de cashback en supermercados, restaurantes y farmacias"}, "issuer": "Santander", "basic": false, "tier": "", "catLow": 88.9, "catHigh": 88.9, "fee": 0, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of", "note": "CAT oficial 88.9% (Oro); cashback hasta 6% por categoría"}, {"name": "HSBC 2Now", "group": "General", "scores": [2, 4, 5, 3, 2, 3, 3, 4], "est": [3, 5, 7], "perks": ["cash"], "perkText": {"cash": "2% de cashback en todas tus compras"}, "issuer": "HSBC", "basic": false, "tier": "", "catLow": 82.0, "catHigh": 82.0, "fee": 0, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of", "note": "CAT oficial 82.0% (Oro); 2% de cashback"}, {"name": "BBVA Azul", "group": "General", "scores": [2, 3, 3, 5, 1, 4, 5, 5], "est": [4], "perks": ["msi", "pts"], "perkText": {"pts": "Puntos BBVA (en el Buen Fin 2025 daba 9% de tus compras en puntos)", "msi": "Meses sin intereses en comercios participantes"}, "issuer": "BBVA", "basic": false, "tier": "", "catLow": 90.1, "catHigh": 148.7, "fee": 748, "iva": true, "incomeMin": 6000, "hist": "?", "catSrc": "of", "note": "CAT oficial de 90.1% a 148.7% según tu límite; $748 de comisión"}, {"name": "Vexi", "group": "Jóvenes", "scores": [4, 4, 1, 3, 1, 5, 1, 4], "est": [3, 7], "perks": [], "perkText": {}, "issuer": "Vexi", "basic": false, "tier": "", "catLow": 48.2, "catHigh": 95.6, "fee": 0, "iva": false, "incomeMin": 2000, "hist": "no", "catSrc": "re", "note": "CAT 48.2% a 95.6% (ref.); sin historial"}, {"name": "Nu México", "group": "Jóvenes", "scores": [1, 5, 1, 3, 2, 5, 1, 5], "est": [], "perks": ["insure", "msi", "protect"], "perkText": {"msi": "Meses sin intereses y opción de adelantar pagos con descuento", "protect": "Protección de compras y garantía extendida de Mastercard Gold", "insure": "Asistencia mundial 24/7"}, "issuer": "Nu", "basic": false, "tier": "", "catLow": 150.1, "catHigh": 150.1, "fee": 0, "iva": false, "incomeMin": null, "hist": "no", "catSrc": "em", "note": "CAT promedio 150.1% (carátula de ago. 2026); sin anualidad"}, {"name": "Stori", "group": "Jóvenes", "scores": [2, 5, 1, 3, 1, 5, 1, 4], "est": [2, 3, 7], "perks": [], "perkText": {}, "issuer": "Stori", "basic": false, "tier": "", "catLow": 85.3, "catHigh": 108.4, "fee": 0, "iva": false, "incomeMin": null, "hist": "no", "catSrc": "re", "note": "CAT 85.3% a 108.4% (ref.); alta aprobación"}, {"name": "Mercado Pago", "group": "Jóvenes", "scores": [1, 5, 1, 4, 1, 5, 1, 5], "est": [], "perks": ["msi", "perks"], "perkText": {"msi": "Meses sin intereses en Mercado Libre (hasta 24 MSI en campañas)", "perks": "Beneficios y promociones dentro de Mercado Libre"}, "issuer": "Mercado Pago", "basic": false, "tier": "", "catLow": 118.0, "catHigh": 136.0, "fee": 0, "iva": false, "incomeMin": null, "hist": "no", "catSrc": "re", "note": "CAT 118% a 136% (ref.); meses en Mercado Libre"}, {"name": "Inbursa Óptima", "group": "Adultos", "scores": [4, 4, 3, 3, 2, 3, 4, 3], "est": [5, 7], "perks": ["insure", "pts"], "perkText": {"pts": "Programa de recompensas Inbursa", "insure": "Membresía médica incluida"}, "issuer": "Inbursa", "basic": false, "tier": "", "catLow": 48.4, "catHigh": 48.4, "fee": 650, "iva": false, "incomeMin": null, "hist": "si", "catSrc": "of", "note": "CAT oficial 48.4% (Oro); $650; devuelve 20% de intereses si pagas a tiempo"}, {"name": "Banregio Más / Oro", "group": "Adultos", "scores": [5, 3, 3, 3, 2, 3, 3, 3], "est": [1, 2, 3, 4, 5, 7], "perks": [], "perkText": {}, "issuer": "Banregio", "basic": false, "tier": "", "catLow": 32.6, "catHigh": 40.2, "fee": 0, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of", "note": "CAT oficial 32.6% (Más) a 40.2% (Win, Oro); $0 de comisión"}, {"name": "Walmart INVEX", "group": "Adultos", "scores": [5, 3, 3, 3, 1, 3, 2, 3], "est": [1, 2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "INVEX", "basic": false, "tier": "", "catLow": 31.2, "catHigh": 31.2, "fee": 0, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of", "note": "CAT oficial 31.2%; $0 de comisión; tarjeta de tienda"}, {"name": "BBVA Oro", "group": "Adultos", "scores": [3, 3, 3, 4, 2, 2, 5, 5], "est": [4], "perks": ["msi", "pts"], "perkText": {"pts": "Puntos BBVA (11% en puntos en promociones)", "msi": "Meses sin intereses en comercios participantes"}, "issuer": "BBVA", "basic": false, "tier": "", "catLow": 66.8, "catHigh": 66.8, "fee": 1151, "iva": true, "incomeMin": 20000, "hist": "si", "catSrc": "of", "note": "CAT oficial 66.8%; $1,151; ingreso mínimo de $20,000"}, {"name": "Santander Gold", "group": "Adultos", "scores": [3, 4, 3, 3, 3, 3, 4, 4], "est": [3, 5, 7], "perks": ["insure", "lounge", "pts"], "perkText": {"lounge": "2 accesos de sala VIP LoungeKey", "pts": "Puntos Unique Rewards", "insure": "Concierge y asistencia de viajes"}, "issuer": "Santander", "basic": false, "tier": "", "catLow": 70.4, "catHigh": 70.4, "fee": 630, "iva": false, "incomeMin": null, "hist": "si", "catSrc": "of", "note": "CAT oficial 70.4% (Unique Rewards Gold); $630; 2 accesos de sala"}, {"name": "Inbursa Platinum", "group": "Con anualidad", "scores": [4, 2, 3, 3, 4, 2, 4, 3], "est": [5, 7], "perks": ["cash", "lounge", "protect", "pts"], "perkText": {"lounge": "6 accesos VIP Priority Pass", "pts": "Puntos transferibles", "cash": "0.5% de cashback", "protect": "Seguro contra robo o extravío y liberación de saldo por fallecimiento (folletos de Inbursa)"}, "issuer": "Inbursa", "basic": false, "tier": "", "catLow": 40.9, "catHigh": 40.9, "fee": 1320, "iva": false, "incomeMin": null, "hist": "si", "catSrc": "of", "note": "CAT oficial 40.9%; $1,320; 6 accesos Priority Pass"}, {"name": "Banamex Platinum", "group": "Con anualidad", "scores": [4, 1, 3, 3, 4, 2, 4, 4], "est": [3, 5, 7], "perks": ["lounge", "perks", "pts"], "perkText": {"lounge": "Salones VIP Beyond (número de accesos por confirmar)", "pts": "Puntos Premia", "perks": "Preventas exclusivas de conciertos y eventos"}, "issuer": "Banamex", "basic": false, "tier": "", "catLow": 39.0, "catHigh": 39.0, "fee": 2725, "iva": true, "incomeMin": null, "hist": "si", "catSrc": "of", "note": "CAT oficial 39.0%; $2,725 + IVA; salones Beyond"}, {"name": "Santander Unique Rewards", "group": "Con anualidad", "scores": [2, 2, 4, 3, 5, 2, 4, 4], "est": [3, 5, 7], "perks": ["air", "insure", "lounge", "pts"], "perkText": {"lounge": "10 accesos VIP LoungeKey", "pts": "Puntos triples Unique Rewards", "insure": "Seguros de viaje de amplia cobertura", "air": "Una noche de hotel gratis por aniversario"}, "issuer": "Santander", "basic": false, "tier": "", "catLow": 81.2, "catHigh": 81.2, "fee": 2500, "iva": false, "incomeMin": null, "hist": "si", "catSrc": "of", "note": "CAT oficial 81.2% (Platinum); $2,500; 10 accesos y noche de hotel"}, {"name": "Amex Gold Elite", "group": "Con anualidad", "scores": [2, 2, 4, 4, 3, 2, 2, 4], "est": [5, 6, 7], "perks": ["insure", "msi", "perks", "protect", "pts"], "perkText": {"pts": "Membership Rewards", "insure": "Seguro de viajes", "protect": "Protección de compras", "perks": "Beneficios en Starbucks y Walmart", "msi": "Meses sin intereses (6 meses en comercios participantes)"}, "issuer": "American Express", "basic": false, "tier": "", "catLow": 97.5, "catHigh": 97.5, "fee": 1700, "iva": true, "incomeMin": null, "hist": "si", "catSrc": "re", "note": "CAT 97.5% (ref.); $1,700 + IVA; primer año gratis"}, {"name": "Amex Platinum (crédito)", "group": "Con anualidad", "scores": [2, 1, 3, 5, 5, 2, 2, 4], "est": [5, 6, 7], "perks": ["insure", "lounge", "msi", "protect"], "perkText": {"msi": "Meses sin intereses automáticos en compras de más de $6,000", "lounge": "Acceso a salas Priority Pass", "insure": "Seguro de viajes y equipaje", "protect": "Garantías extendidas"}, "issuer": "American Express", "basic": false, "tier": "", "catLow": 82.2, "catHigh": 82.2, "fee": 3700, "iva": true, "incomeMin": null, "hist": "si", "catSrc": "re", "note": "CAT 82.2% (ref.); $3,700 + IVA; meses automáticos"}, {"name": "Revolut", "group": "Otras evaluadas", "scores": [2, 5, 3, 4, 3, 2, 1, 5], "est": [], "perks": ["air", "lounge", "msi", "pts"], "perkText": {"pts": "RevPoints", "msi": "Meses sin intereses en más de 40,000 comercios", "lounge": "Sala VIP del AICM; el plan Metal suma hasta 5 accesos al año", "air": "Sin comisión por compras en el extranjero y hasta 51 días para pagar"}, "issuer": "Revolut", "basic": false, "tier": "", "catLow": 99.3, "catHigh": 99.3, "fee": 0, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of", "note": "CAT oficial 99.3% (Platino); $0 en plan Estándar; por invitación; exige cuenta Revolut"}, {"name": "Plata Card", "group": "Otras evaluadas", "scores": [1, 4, 4, 2, 1, 5, 1, 5], "est": [], "perks": ["cash"], "perkText": {"cash": "Hasta 15% de cashback por categoría o comercio (tope de $1,000 al mes; $3,000 con Plata Plus)"}, "issuer": "Plata", "basic": false, "tier": "", "catLow": 169.3, "catHigh": 217.1, "fee": 199, "iva": true, "incomeMin": null, "hist": "no", "catSrc": "of", "note": "CAT oficial 217.1% (el folleto del emisor de sep. 2026 indica un promedio de 169.3%); $199 + IVA según el emisor"}, {"name": "Costco Banamex", "group": "Otras evaluadas", "scores": [3, 4, 4, 4, 2, 4, 4, 4], "est": [7], "perks": ["cash", "msi", "perks", "protect"], "perkText": {"cash": "3% de reembolso en Costco y de 1% a 2% fuera de Costco según la fuente", "msi": "Meses sin intereses a tasa 0%", "perks": "Precio de efectivo en Costco y preventas Banamex", "protect": "Protección de compras y garantía extendida Visa"}, "issuer": "Banamex", "basic": false, "tier": "", "catLow": 78.0, "catHigh": 107.0, "fee": 650, "iva": true, "incomeMin": 7000, "hist": "si", "catSrc": "of", "note": "CAT oficial de 78.0% a 107.0% según tu límite; $650 + IVA; 3% en Costco; conviene si eres socio"}, {"name": "Joy Banamex", "group": "Otras evaluadas", "scores": [3, 4, 2, 4, 2, 4, 4, 4], "est": [], "perks": ["msi", "perks", "protect"], "perkText": {"msi": "Meses sin intereses", "perks": "Preventas Banamex en Ticketmaster y Cinépolis 2x1 (una entrada al mes)", "protect": "Protección de compra Mastercard"}, "issuer": "Banamex", "basic": false, "tier": "", "catLow": 79.9, "catHigh": 82.2, "fee": 0, "iva": false, "incomeMin": 7000, "hist": "si", "catSrc": "of", "note": "CAT oficial de 79.9% a 82.2% según tu límite; sin comisión si compras $300 al mes; preventas Banamex"}, {"name": "Openbank (Open)", "group": "Otras evaluadas", "scores": [1, 5, 5, 3, 1, 3, 1, 5], "est": [], "perks": ["cash", "msi"], "perkText": {"cash": "3% de cashback en compras en línea, restaurantes y contactless (tope de $500 al mes, hasta el 31 de diciembre de 2026)", "msi": "Hasta 6 meses sin intereses en compras de más de $1,500, que difieres desde la app"}, "issuer": "Openbank", "basic": false, "tier": "", "catLow": 177.5, "catHigh": 177.5, "fee": 0, "iva": false, "incomeMin": 7000, "hist": "si", "catSrc": "em", "note": "CAT 177.5% (emisor); $0; 3% cashback con tope de $500 al mes"}, {"name": "HSBC Viva", "group": "Otras evaluadas", "scores": [2, 4, 4, 3, 4, 4, 3, 4], "est": [], "perks": ["air", "lounge", "msi", "pts"], "perkText": {"pts": "2 puntos Doters por cada $10 y bono de bienvenida de 20,000 puntos", "lounge": "4 accesos a la sala Elite Lounge Mastercard del AICM", "air": "Abordaje prioritario y una maleta documentada al año", "msi": "Meses sin intereses en compras Viva"}, "issuer": "HSBC", "basic": false, "tier": "", "catLow": 98.4, "catHigh": 98.4, "fee": 0, "iva": false, "incomeMin": 5000, "hist": "?", "catSrc": "of", "note": "CAT oficial 98.4%; $0 con uso de $300 al mes; 4 accesos de sala (AICM)"}, {"name": "BanCoppel Clásica", "group": "Catálogo oficial", "scores": [2, 5, 3, 3, 1, 3, 5, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "BanCoppel", "basic": true, "tier": "Clásica", "note": "CAT oficial de 88.4% a 89.9% según el límite; comisión por administración de $0", "catLow": 88.4, "catHigh": 89.9, "fee": 0, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "BBVA Crea", "group": "Catálogo oficial", "scores": [1, 4, 3, 3, 1, 3, 5, 5], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "BBVA", "basic": true, "tier": "Clásica", "note": "CAT oficial 120.6%; comisión por administración de $343", "catLow": 120.6, "catHigh": 120.6, "fee": 343, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Banorte Clásica", "group": "Catálogo oficial", "scores": [2, 3, 3, 3, 1, 3, 5, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Banorte", "basic": true, "tier": "Clásica", "note": "CAT oficial de 92.7% a 131.8% según el límite; comisión por administración de $720", "catLow": 92.7, "catHigh": 131.8, "fee": 720, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Banamex Clásica", "group": "Catálogo oficial", "scores": [2, 3, 3, 3, 1, 3, 4, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Banamex", "basic": true, "tier": "Clásica", "note": "CAT oficial de 85.5% a 140.2% según el límite; comisión por administración de $815", "catLow": 85.5, "catHigh": 140.2, "fee": 815, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Ualá", "group": "Catálogo oficial", "scores": [1, 5, 3, 3, 1, 3, 1, 5], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Ualá", "basic": true, "tier": "Clásica", "note": "CAT oficial de 143.4% a 224.9% según el límite; comisión por administración de $0", "catLow": 143.4, "catHigh": 224.9, "fee": 0, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Plata Garantizada", "group": "Catálogo oficial", "scores": [1, 5, 3, 3, 1, 5, 1, 5], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Plata", "basic": true, "tier": "Garantizada", "note": "CAT oficial 1540.8%; comisión por administración de $0", "catLow": 1540.8, "catHigh": 1540.8, "fee": 0, "iva": false, "incomeMin": null, "hist": "no", "catSrc": "of"}, {"name": "HSBC Air", "group": "Catálogo oficial", "scores": [4, 3, 3, 3, 1, 3, 3, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "HSBC", "basic": true, "tier": "Clásica", "note": "CAT oficial de 48.0% a 52.1% según el límite; comisión por administración de $915", "catLow": 48.0, "catHigh": 52.1, "fee": 915, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Now (INVEX)", "group": "Catálogo oficial", "scores": [3, 5, 3, 3, 1, 3, 2, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "INVEX", "basic": true, "tier": "Clásica", "note": "CAT oficial de 59.5% a 74.7% según el límite; comisión por administración de $0", "catLow": 59.5, "catHigh": 74.7, "fee": 0, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "BanBajío Visa Clásica Garantizada", "group": "Catálogo oficial", "scores": [2, 4, 3, 3, 1, 5, 3, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "BanBajío", "basic": true, "tier": "Garantizada", "note": "CAT oficial 83.8%; comisión por administración de $700", "catLow": 83.8, "catHigh": 83.8, "fee": 700, "iva": false, "incomeMin": null, "hist": "no", "catSrc": "of"}, {"name": "HSBC Zero", "group": "Catálogo oficial", "scores": [2, 5, 3, 3, 1, 3, 3, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "HSBC", "basic": true, "tier": "Clásica", "note": "CAT oficial de 93.2% a 93.6% según el límite; comisión por administración de $0", "catLow": 93.2, "catHigh": 93.6, "fee": 0, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "BBVA Vive", "group": "Catálogo oficial", "scores": [2, 3, 3, 3, 1, 3, 5, 5], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "BBVA", "basic": true, "tier": "Clásica", "note": "CAT oficial de 85.2% a 110.3% según el límite; comisión por administración de $748", "catLow": 85.2, "catHigh": 110.3, "fee": 748, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Home Depot Banamex", "group": "Catálogo oficial", "scores": [2, 3, 3, 3, 1, 3, 4, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Banamex", "basic": true, "tier": "Clásica", "note": "CAT oficial de 85.7% a 111.2% según el límite; comisión por administración de $774", "catLow": 85.7, "catHigh": 111.2, "fee": 774, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "BBVA Rayados", "group": "Catálogo oficial", "scores": [2, 3, 3, 3, 1, 3, 5, 5], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "BBVA", "basic": true, "tier": "Clásica", "note": "CAT oficial de 89.1% a 111.7% según el límite; comisión por administración de $748", "catLow": 89.1, "catHigh": 111.7, "fee": 748, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "BanBajío Visa Clásica", "group": "Catálogo oficial", "scores": [2, 4, 3, 3, 1, 3, 3, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "BanBajío", "basic": true, "tier": "Clásica", "note": "CAT oficial de 83.1% a 83.4% según el límite; comisión por administración de $700", "catLow": 83.1, "catHigh": 83.4, "fee": 700, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Inbursa Clásica", "group": "Catálogo oficial", "scores": [2, 4, 3, 3, 1, 3, 4, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Inbursa", "basic": true, "tier": "Clásica", "note": "CAT oficial 83.5%; comisión por administración de $390", "catLow": 83.5, "catHigh": 83.5, "fee": 390, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Banamex Teletón", "group": "Catálogo oficial", "scores": [2, 4, 3, 3, 1, 3, 4, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Banamex", "basic": true, "tier": "Clásica", "note": "CAT oficial de 84.2% a 93.0% según el límite; comisión por administración de $540", "catLow": 84.2, "catHigh": 93.0, "fee": 540, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Banamex Affinity Card", "group": "Catálogo oficial", "scores": [2, 3, 3, 3, 1, 3, 4, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Banamex", "basic": true, "tier": "Clásica", "note": "CAT oficial de 85.9% a 98.9% según el límite; comisión por administración de $815", "catLow": 85.9, "catHigh": 98.9, "fee": 815, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Inbursa Sam's Club", "group": "Catálogo oficial", "scores": [2, 3, 3, 3, 1, 3, 4, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Inbursa", "basic": true, "tier": "Clásica", "note": "CAT oficial de 89.5% a 103.5% según el límite; comisión por administración de $750", "catLow": 89.5, "catHigh": 103.5, "fee": 750, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Scotiabank IDEAL", "group": "Catálogo oficial", "scores": [3, 5, 3, 3, 1, 3, 4, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Scotiabank", "basic": true, "tier": "Clásica", "note": "CAT oficial de 70.7% a 105.4% según el límite; comisión por administración de $0", "catLow": 70.7, "catHigh": 105.4, "fee": 0, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Banorte Selección Nacional", "group": "Catálogo oficial", "scores": [2, 3, 3, 3, 1, 3, 5, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Banorte", "basic": true, "tier": "Clásica", "note": "CAT oficial de 91.5% a 107.5% según el límite; comisión por administración de $1,150", "catLow": 91.5, "catHigh": 107.5, "fee": 1150, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Inbursa Walmart", "group": "Catálogo oficial", "scores": [2, 3, 3, 3, 1, 3, 4, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Inbursa", "basic": true, "tier": "Clásica", "note": "CAT oficial 107.6%; comisión por administración de $750", "catLow": 107.6, "catHigh": 107.6, "fee": 750, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Afirme Clásica", "group": "Catálogo oficial", "scores": [1, 3, 3, 3, 1, 3, 3, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Afirme", "basic": true, "tier": "Clásica", "note": "CAT oficial 110.5%; comisión por administración de $750", "catLow": 110.5, "catHigh": 110.5, "fee": 750, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Sam's Club INVEX", "group": "Catálogo oficial", "scores": [5, 5, 3, 3, 1, 3, 2, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "INVEX", "basic": true, "tier": "Clásica", "note": "CAT oficial 31.2%; comisión por administración de $0", "catLow": 31.2, "catHigh": 31.2, "fee": 0, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Afirme Tigres", "group": "Catálogo oficial", "scores": [2, 3, 3, 3, 1, 3, 3, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Afirme", "basic": true, "tier": "Clásica", "note": "CAT oficial 100.7%; comisión por administración de $850", "catLow": 100.7, "catHigh": 100.7, "fee": 850, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "IKEA INVEX", "group": "Catálogo oficial", "scores": [5, 5, 3, 3, 2, 3, 2, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "INVEX", "basic": true, "tier": "Oro", "note": "CAT oficial 26.9%; comisión por administración de $0", "catLow": 26.9, "catHigh": 26.9, "fee": 0, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Despegar INVEX Gold", "group": "Catálogo oficial", "scores": [5, 2, 3, 3, 2, 3, 2, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "INVEX", "basic": true, "tier": "Oro", "note": "CAT oficial 32.8%; comisión por administración de $1,696", "catLow": 32.8, "catHigh": 32.8, "fee": 1696, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "INVEX Voyage", "group": "Catálogo oficial", "scores": [4, 1, 3, 3, 2, 3, 2, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "INVEX", "basic": true, "tier": "Oro", "note": "CAT oficial 37.1%; comisión por administración de $2,903", "catLow": 37.1, "catHigh": 37.1, "fee": 2903, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "BanBajío Visa Oro", "group": "Catálogo oficial", "scores": [3, 3, 3, 3, 2, 3, 3, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "BanBajío", "basic": true, "tier": "Oro", "note": "CAT oficial 65.8%; comisión por administración de $1,000", "catLow": 65.8, "catHigh": 65.8, "fee": 1000, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "BBVA Afinidad UNAM", "group": "Catálogo oficial", "scores": [3, 3, 3, 3, 2, 3, 5, 5], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "BBVA", "basic": true, "tier": "Oro", "note": "CAT oficial 71.4%; comisión por administración de $1,151", "catLow": 71.4, "catHigh": 71.4, "fee": 1151, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Inbursa Oro", "group": "Catálogo oficial", "scores": [3, 4, 3, 3, 2, 3, 4, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Inbursa", "basic": true, "tier": "Oro", "note": "CAT oficial 75.5%; comisión por administración de $540", "catLow": 75.5, "catHigh": 75.5, "fee": 540, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Mifel Leones", "group": "Catálogo oficial", "scores": [3, 3, 3, 3, 2, 3, 2, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Mifel", "basic": true, "tier": "Oro", "note": "CAT oficial 75.8%; comisión por administración de $739", "catLow": 75.8, "catHigh": 75.8, "fee": 739, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Mifel Oro", "group": "Catálogo oficial", "scores": [3, 3, 3, 3, 2, 3, 2, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Mifel", "basic": true, "tier": "Oro", "note": "CAT oficial 75.9%; comisión por administración de $899", "catLow": 75.9, "catHigh": 75.9, "fee": 899, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "BanCoppel Oro", "group": "Catálogo oficial", "scores": [3, 4, 3, 3, 2, 3, 5, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "BanCoppel", "basic": true, "tier": "Oro", "note": "CAT oficial 77.3%; comisión por administración de $450", "catLow": 77.3, "catHigh": 77.3, "fee": 450, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Banamex Explora", "group": "Catálogo oficial", "scores": [3, 1, 3, 3, 2, 3, 4, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Banamex", "basic": true, "tier": "Oro", "note": "CAT oficial 77.3%; comisión por administración de $2,725", "catLow": 77.3, "catHigh": 77.3, "fee": 2725, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Banorte One Up", "group": "Catálogo oficial", "scores": [2, 5, 3, 3, 2, 3, 5, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Banorte", "basic": true, "tier": "Oro", "note": "CAT oficial 80.1%; comisión por administración de $0", "catLow": 80.1, "catHigh": 80.1, "fee": 0, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Banamex Descubre", "group": "Catálogo oficial", "scores": [2, 3, 3, 3, 2, 3, 4, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Banamex", "basic": true, "tier": "Oro", "note": "CAT oficial 82.6%; comisión por administración de $1,230", "catLow": 82.6, "catHigh": 82.6, "fee": 1230, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Banamex Oro", "group": "Catálogo oficial", "scores": [2, 3, 3, 3, 2, 3, 4, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Banamex", "basic": true, "tier": "Oro", "note": "CAT oficial 83.6%; comisión por administración de $1,230", "catLow": 83.6, "catHigh": 83.6, "fee": 1230, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Santander American Express", "group": "Catálogo oficial", "scores": [2, 5, 3, 3, 2, 3, 4, 5], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Santander", "basic": true, "tier": "Oro", "note": "CAT oficial 84.8%; comisión por administración de $0", "catLow": 84.8, "catHigh": 84.8, "fee": 0, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Banamex LineUp", "group": "Catálogo oficial", "scores": [2, 3, 3, 3, 2, 3, 4, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Banamex", "basic": true, "tier": "Oro", "note": "CAT oficial 87.6%; comisión por administración de $1,230", "catLow": 87.6, "catHigh": 87.6, "fee": 1230, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Banamex La Comer", "group": "Catálogo oficial", "scores": [2, 3, 3, 3, 2, 3, 4, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Banamex", "basic": true, "tier": "Oro", "note": "CAT oficial 87.7%; comisión por administración de $1,230", "catLow": 87.7, "catHigh": 87.7, "fee": 1230, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Santander Fiesta Rewards Oro", "group": "Catálogo oficial", "scores": [2, 3, 3, 3, 2, 3, 4, 5], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Santander", "basic": true, "tier": "Oro", "note": "CAT oficial 92.0%; comisión por administración de $1,099", "catLow": 92.0, "catHigh": 92.0, "fee": 1099, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Banorte Mujer", "group": "Catálogo oficial", "scores": [2, 3, 3, 3, 2, 3, 5, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Banorte", "basic": true, "tier": "Oro", "note": "CAT oficial 95.5%; comisión por administración de $1,150", "catLow": 95.5, "catHigh": 95.5, "fee": 1150, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Banorte Por Ti", "group": "Catálogo oficial", "scores": [2, 3, 3, 3, 2, 3, 5, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Banorte", "basic": true, "tier": "Oro", "note": "CAT oficial 95.5%; comisión por administración de $1,150", "catLow": 95.5, "catHigh": 95.5, "fee": 1150, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Banorte Oro", "group": "Catálogo oficial", "scores": [2, 3, 3, 3, 2, 3, 5, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Banorte", "basic": true, "tier": "Oro", "note": "CAT oficial 95.7%; comisión por administración de $1,150", "catLow": 95.7, "catHigh": 95.7, "fee": 1150, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Scotiabank Travel Oro", "group": "Catálogo oficial", "scores": [2, 3, 3, 3, 2, 3, 4, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Scotiabank", "basic": true, "tier": "Oro", "note": "CAT oficial 96.7%; comisión por administración de $1,209", "catLow": 96.7, "catHigh": 96.7, "fee": 1209, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Banorte Marriott Bonvoy", "group": "Catálogo oficial", "scores": [2, 2, 3, 3, 2, 3, 5, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Banorte", "basic": true, "tier": "Oro", "note": "CAT oficial 99.7%; comisión por administración de $1,600", "catLow": 99.7, "catHigh": 99.7, "fee": 1600, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Afirme HEB", "group": "Catálogo oficial", "scores": [1, 5, 3, 3, 2, 3, 3, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Afirme", "basic": true, "tier": "Oro", "note": "CAT oficial 134.1%; comisión por administración de $0", "catLow": 134.1, "catHigh": 134.1, "fee": 0, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Ualá Garantizada", "group": "Catálogo oficial", "scores": [1, 5, 3, 3, 1, 5, 1, 5], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Ualá", "basic": true, "tier": "Garantizada", "note": "CAT oficial 232.5%; comisión por administración de $0", "catLow": 232.5, "catHigh": 232.5, "fee": 0, "iva": false, "incomeMin": null, "hist": "no", "catSrc": "of"}, {"name": "BBVA Infinite", "group": "Catálogo oficial", "scores": [5, 1, 3, 3, 4, 2, 5, 5], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "BBVA", "basic": true, "tier": "Platino", "note": "CAT oficial 31.6%; comisión por administración de $6,247", "catLow": 31.6, "catHigh": 31.6, "fee": 6247, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Inbursa Black American Express", "group": "Catálogo oficial", "scores": [5, 2, 3, 3, 4, 2, 4, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Inbursa", "basic": true, "tier": "Platino", "note": "CAT oficial 31.9%; comisión por administración de $2,500", "catLow": 31.9, "catHigh": 31.9, "fee": 2500, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Santander Unique Rewards Black", "group": "Catálogo oficial", "scores": [5, 1, 3, 3, 4, 2, 4, 5], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Santander", "basic": true, "tier": "Platino", "note": "CAT oficial 33.2%; comisión por administración de $6,000", "catLow": 33.2, "catHigh": 33.2, "fee": 6000, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Banregio Platinum", "group": "Catálogo oficial", "scores": [5, 5, 3, 3, 4, 2, 3, 5], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Banregio", "basic": true, "tier": "Platino", "note": "CAT oficial 34.2%; comisión por administración de $0", "catLow": 34.2, "catHigh": 34.2, "fee": 0, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Banamex Conquista", "group": "Catálogo oficial", "scores": [5, 1, 3, 3, 4, 2, 4, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Banamex", "basic": true, "tier": "Platino", "note": "CAT oficial 34.7%; comisión por administración de $6,800", "catLow": 34.7, "catHigh": 34.7, "fee": 6800, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Despegar INVEX Platinum", "group": "Catálogo oficial", "scores": [4, 1, 3, 3, 4, 2, 2, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "INVEX", "basic": true, "tier": "Platino", "note": "CAT oficial 36.2%; comisión por administración de $3,957", "catLow": 36.2, "catHigh": 36.2, "fee": 3957, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "INVEX Voyage Platinum", "group": "Catálogo oficial", "scores": [4, 1, 3, 3, 4, 2, 2, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "INVEX", "basic": true, "tier": "Platino", "note": "CAT oficial 37.3%; comisión por administración de $4,043", "catLow": 37.3, "catHigh": 37.3, "fee": 4043, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "BanBajío Exclusive Infinite", "group": "Catálogo oficial", "scores": [4, 1, 3, 3, 4, 2, 3, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "BanBajío", "basic": true, "tier": "Platino", "note": "CAT oficial 37.4%; comisión por administración de $7,000", "catLow": 37.4, "catHigh": 37.4, "fee": 7000, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Volaris INVEX Platino", "group": "Catálogo oficial", "scores": [4, 1, 3, 3, 4, 2, 2, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "INVEX", "basic": true, "tier": "Platino", "note": "CAT oficial 39.0%; comisión por administración de $3,221", "catLow": 39.0, "catHigh": 39.0, "fee": 3221, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Volaris INVEX 2.0", "group": "Catálogo oficial", "scores": [4, 1, 3, 3, 4, 2, 2, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "INVEX", "basic": true, "tier": "Platino", "note": "CAT oficial 40.9%; comisión por administración de $4,791", "catLow": 40.9, "catHigh": 40.9, "fee": 4791, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "HSBC Premier World Elite", "group": "Catálogo oficial", "scores": [4, 1, 3, 3, 4, 2, 3, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "HSBC", "basic": true, "tier": "Platino", "note": "CAT oficial 40.9%; comisión por administración de $6,770", "catLow": 40.9, "catHigh": 40.9, "fee": 6770, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Scotiabank Singular Signature", "group": "Catálogo oficial", "scores": [4, 1, 3, 3, 4, 2, 4, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Scotiabank", "basic": true, "tier": "Platino", "note": "CAT oficial 42.2%; comisión por administración de $5,100", "catLow": 42.2, "catHigh": 42.2, "fee": 5100, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "BanBajío Visa Platinum", "group": "Catálogo oficial", "scores": [4, 2, 3, 3, 4, 2, 3, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "BanBajío", "basic": true, "tier": "Platino", "note": "CAT oficial 42.7%; comisión por administración de $2,250", "catLow": 42.7, "catHigh": 42.7, "fee": 2250, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "BBVA Platinum", "group": "Catálogo oficial", "scores": [4, 2, 3, 3, 4, 2, 5, 5], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "BBVA", "basic": true, "tier": "Platino", "note": "CAT oficial 48.3%; comisión por administración de $2,579", "catLow": 48.3, "catHigh": 48.3, "fee": 2579, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Banorte Infinite", "group": "Catálogo oficial", "scores": [3, 1, 3, 3, 4, 2, 5, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Banorte", "basic": true, "tier": "Platino", "note": "CAT oficial 51.0%; comisión por administración de $6,200", "catLow": 51.0, "catHigh": 51.0, "fee": 6200, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Scotiabank Singular World Elite", "group": "Catálogo oficial", "scores": [3, 1, 3, 3, 4, 2, 4, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Scotiabank", "basic": true, "tier": "Platino", "note": "CAT oficial 52.9%; comisión por administración de $6,308", "catLow": 52.9, "catHigh": 52.9, "fee": 6308, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Mifel Platino", "group": "Catálogo oficial", "scores": [3, 2, 3, 3, 4, 2, 2, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Mifel", "basic": true, "tier": "Platino", "note": "CAT oficial 53.2%; comisión por administración de $2,499", "catLow": 53.2, "catHigh": 53.2, "fee": 2499, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Banorte Platinum", "group": "Catálogo oficial", "scores": [3, 1, 3, 3, 4, 2, 5, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Banorte", "basic": true, "tier": "Platino", "note": "CAT oficial 56.0%; comisión por administración de $2,650", "catLow": 56.0, "catHigh": 56.0, "fee": 2650, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Banorte United Universe", "group": "Catálogo oficial", "scores": [3, 1, 3, 3, 4, 2, 5, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Banorte", "basic": true, "tier": "Platino", "note": "CAT oficial 57.6%; comisión por administración de $5,800", "catLow": 57.6, "catHigh": 57.6, "fee": 5800, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "HSBC Advance Platinum", "group": "Catálogo oficial", "scores": [3, 1, 3, 3, 4, 2, 3, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "HSBC", "basic": true, "tier": "Platino", "note": "CAT oficial 57.7%; comisión por administración de $2,968", "catLow": 57.7, "catHigh": 57.7, "fee": 2968, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Afirme Platinum", "group": "Catálogo oficial", "scores": [3, 2, 3, 3, 4, 2, 3, 3], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Afirme", "basic": true, "tier": "Platino", "note": "CAT oficial 59.2%; comisión por administración de $2,500", "catLow": 59.2, "catHigh": 59.2, "fee": 2500, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Scotiabank Travel Platinum", "group": "Catálogo oficial", "scores": [3, 1, 3, 3, 4, 2, 4, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Scotiabank", "basic": true, "tier": "Platino", "note": "CAT oficial 61.0%; comisión por administración de $2,776", "catLow": 61.0, "catHigh": 61.0, "fee": 2776, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Santander Aeroméxico Infinite", "group": "Catálogo oficial", "scores": [3, 1, 3, 3, 4, 2, 4, 5], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Santander", "basic": true, "tier": "Platino", "note": "CAT oficial 62.7%; comisión por administración de $6,000", "catLow": 62.7, "catHigh": 62.7, "fee": 6000, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Banorte Marriott Bonvoy Inspire", "group": "Catálogo oficial", "scores": [3, 1, 3, 3, 4, 2, 5, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Banorte", "basic": true, "tier": "Platino", "note": "CAT oficial 75.7%; comisión por administración de $3,200", "catLow": 75.7, "catHigh": 75.7, "fee": 3200, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Banorte United", "group": "Catálogo oficial", "scores": [3, 1, 3, 3, 4, 2, 5, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Banorte", "basic": true, "tier": "Platino", "note": "CAT oficial 76.6%; comisión por administración de $3,200", "catLow": 76.6, "catHigh": 76.6, "fee": 3200, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Santander Aeroméxico Platinum", "group": "Catálogo oficial", "scores": [3, 1, 3, 3, 4, 2, 4, 5], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Santander", "basic": true, "tier": "Platino", "note": "CAT oficial 78.9%; comisión por administración de $4,000", "catLow": 78.9, "catHigh": 78.9, "fee": 4000, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "HSBC Viva Plus", "group": "Catálogo oficial", "scores": [3, 1, 3, 3, 4, 2, 3, 4], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "HSBC", "basic": true, "tier": "Platino", "note": "CAT oficial 79.6%; comisión por administración de $3,124", "catLow": 79.6, "catHigh": 79.6, "fee": 3124, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Santander Fiesta Rewards Platino", "group": "Catálogo oficial", "scores": [3, 2, 3, 3, 4, 2, 4, 5], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Santander", "basic": true, "tier": "Platino", "note": "CAT oficial 79.7%; comisión por administración de $2,199", "catLow": 79.7, "catHigh": 79.7, "fee": 2199, "iva": false, "incomeMin": null, "hist": "?", "catSrc": "of"}, {"name": "Klar", "group": "Catálogo oficial", "scores": [1, 5, 3, 3, 1, 5, 1, 5], "est": [2, 3, 4, 5, 6, 7], "perks": [], "perkText": {}, "issuer": "Klar", "basic": true, "tier": "Clásica", "note": "CAT de 123.1% a 181% según comparadores (referencia, no oficial); sin anualidad", "catLow": 123.1, "catHigh": 181.0, "fee": 0, "iva": false, "incomeMin": null, "hist": "no", "catSrc": "re"}], "profiles": [{"name": "Pago el total cada mes y quiero beneficios", "w": {"fee": 4, "rew": 5, "msi": 3, "app": 2}}, {"name": "A veces financio mi saldo", "w": {"cat": 5, "fee": 3, "ok": 2}}, {"name": "Es mi primera tarjeta o no tengo historial", "w": {"ok": 5, "fee": 4, "app": 3, "cat": 2}}, {"name": "Viajo seguido", "w": {"trip": 5, "rew": 3, "fee": 1, "cat": 1}}, {"name": "Prefiero atenderme en sucursal", "w": {"branch": 5, "cat": 2, "fee": 2}}, {"name": "Compro a meses (Buen Fin)", "w": {"msi": 5, "fee": 2, "cat": 2}}], "benefits": [{"k": "cash", "label": "Cashback", "hint": "Dinero de regreso por tus compras"}, {"k": "pts", "label": "Puntos o millas", "hint": "Programa de recompensas canjeable"}, {"k": "msi", "label": "Meses sin intereses", "hint": "Promociones a meses con tasa 0%"}, {"k": "lounge", "label": "Salas VIP", "hint": "Accesos a salas de aeropuerto"}, {"k": "insure", "label": "Seguros y asistencia", "hint": "Seguro de viaje, médico o asistencia 24/7"}, {"k": "protect", "label": "Protección de compras", "hint": "Garantía extendida, robo o extravío, precio protegido"}, {"k": "perks", "label": "Preventas y descuentos", "hint": "Preventas, promociones y descuentos de comercios"}, {"k": "air", "label": "Viajes y aerolínea", "hint": "Vuelo, maleta, hotel o sin comisión en el extranjero"}], "promos": [{"id": "santander-prebuenfin-2026", "issuer": "Santander", "cards": "Santander", "title": "Pre Buen Fin: cashback progresivo de hasta 25%", "detail": "Desde el 12 de octubre: 10% de cashback en tu primera compra de más de $7,500 a 6 meses sin intereses o más, 15% en la segunda, 20% en la tercera y 25% en la cuarta. Con la misma inscripción se desbloquean las promociones del Buen Fin.", "cond": "Requiere inscripción. Tope de cashback de $5,500 durante la vigencia. No aplican compras diferidas a un solo pago por Super Línea. La fuente no confirma la fecha de término.", "start": "2026-10-12", "end": null, "source": "Promodescuentos (oferta de octubre de 2026)", "checked": "2026-10-27"}, {"id": "openbank-buenfin-2026", "issuer": "Openbank", "cards": "Openbank (Open)", "title": "Buen Fin con Openbank: bonificación para nuevos clientes y 15% para todos", "detail": "Si contratas la tarjeta del 22 de octubre al 17 de noviembre y compras $2,000 o más, recibes $500 de bonificación. Además, 15% de bonificación para todos y 10% en Mercado Libre, Mercado Pago y Amazon.", "cond": "Resumen de una fuente secundaria: confirma montos, topes y fechas en Openbank.", "start": "2026-10-22", "end": "2026-11-17", "source": "Promodescuentos (octubre de 2026)", "checked": "2026-10-27"}, {"id": "hsbc-maraton-2026", "issuer": "HSBC", "cards": "HSBC", "title": "Maratón de Premios 2026", "detail": "Vuelos, premios físicos y certificados por compras con tarjeta de crédito HSBC.", "cond": "Del 17 de septiembre al 10 de noviembre de 2026. La mecánica y los montos se confirman en HSBC.", "start": "2026-09-17", "end": "2026-11-10", "source": "Promodescuentos (octubre de 2026)", "checked": "2026-10-27"}, {"id": "banorte-momentos-2026", "issuer": "Banorte", "cards": "Banorte", "title": "Momentos de Vida: eliges tu promoción por periodo", "detail": "Con tu tarjeta de crédito Banorte eliges tu promoción: 10% de bonificación y meses sin intereses en diversas categorías.", "cond": "Del 1 de septiembre al 31 de octubre de 2026. Participan las tarjetas de crédito Banorte, excepto empresariales.", "start": "2026-09-01", "end": "2026-10-31", "source": "Promodescuentos (octubre de 2026)", "checked": "2026-10-27"}, {"id": "bbva-get-2026", "issuer": "BBVA", "cards": "BBVA", "title": "GET by BBVA: estrena productos Apple con tu tarjeta", "detail": "Plan para estrenar un iPhone, Apple Watch, iPad o Mac con tu tarjeta de crédito BBVA.", "cond": "Válido del 1 de enero al 31 de diciembre de 2026. Consulta requisitos y plazos en BBVA.", "start": "2026-01-01", "end": "2026-12-31", "source": "BBVA México, página de promociones", "checked": "2026-10-27", "verify_url": "https://www.bbva.mx/personas/productos/tarjetas-de-credito/promociones.html", "verify_text": "GET by BBVA"}, {"id": "bbva-mercadolibre-2026", "issuer": "BBVA", "cards": "BBVA", "title": "Mercado Libre: 15 meses sin intereses en exclusiva", "detail": "Compras en Mercado Libre a 15 meses sin intereses con tu tarjeta de crédito BBVA.", "cond": "Válido del 1 de enero al 31 de diciembre de 2026. Consulta comercios y montos mínimos en BBVA.", "start": "2026-01-01", "end": "2026-12-31", "source": "BBVA México, página de promociones", "checked": "2026-10-27", "verify_url": "https://www.bbva.mx/personas/productos/tarjetas-de-credito/promociones.html", "verify_text": "15 meses sin intereses"}], "notice": "El Buen Fin 2026 es del 13 al 17 de noviembre. BBVA, Banamex, Banorte (edición 2026), HSBC y Scotiabank todavía no publican sus promociones del Buen Fin; aparecerán aquí cuando las publiquen y refresques los datos.", "promosAsOf": "2026-10-27", "updated": "2026-10-27"};
+const KEY = 'tarjetas.editable.v4';
+const $ = id => document.getElementById(id);
+const fmt = n => '$' + Math.round(n).toLocaleString('es-MX');
+let DB = clone(DEFAULT.cards);
+let W = {}; let open = null; let manual = false;
+function clone(x){ return JSON.parse(JSON.stringify(x)); }
+function load(){ try{ const s = localStorage.getItem(KEY); if(s){ const a = JSON.parse(s); if(Array.isArray(a) && a.length){ DB = a; } } }catch(e){} }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(DB)); }catch(e){} }
+const crit = DEFAULT.criteria.concat([{k:'ben',label:'Beneficios que marcaste',hint:'Cuántos de los beneficios que marcaste cubre la tarjeta'}]);
+const NCRIT = 8; const BEN = DEFAULT.benefits;
+const BEN_DEFAULT = ['cash','msi'];
+
+/* ---------- respuestas -> pesos ---------- */
+function answers(){
+  const r = n => (document.querySelector('input[name="'+n+'"]:checked')||{}).value;
+  return {age:$('age').value, income:+$('income').value||0, hist:r('hist'), pay:r('pay'), balance:+$('balance').value||0,
+          ben:[...document.querySelectorAll('#benopts input:checked')].map(i=>i.value), benLevel:+$('benlevel').value, svc:r('svc')};
+}
+function weightsFrom(a){
+  const w = {cat:0,fee:0,rew:0,msi:0,trip:0,ok:0,branch:3,app:3,ben:a.ben.length?a.benLevel:0};
+  if(a.pay==='always'){ w.cat=1; w.fee=4; w.rew=4; }
+  else if(a.pay==='some'){ w.cat=4; w.fee=3; w.rew=3; }
+  else { w.cat=5; w.fee=3; w.rew=1; }
+  w.ok = a.hist==='none'?5:(a.hist==='some'?3:1);
+  if(a.svc==='branch'){ w.branch=5; w.app=1; } else if(a.svc==='app'){ w.branch=1; w.app=5; }
+  if(a.age==='young') w.app=Math.min(5,w.app+1);
+  if(a.age==='senior') w.branch=Math.min(5,w.branch+1);
+  return w;
+}
+let A = {};
+function eff(card,i){
+  const v = card.scores[i];
+  if(crit[i].k==='ok' && A.hist==='none'){ if(card.hist==='no') return 5; if(card.hist==='?') return Math.min(v,2); }
+  return v;
+}
+function benCov(card){
+  if(!A.ben || !A.ben.length) return null;
+  const has=(card.perks||[]);
+  return A.ben.filter(k=>has.indexOf(k)>-1).length/A.ben.length;
+}
+function affinity(card){
+  let sw=0,n=0;
+  crit.forEach((c,i)=>{
+    if(c.k==='ben'){ const cv=benCov(card); if(cv===null||!W.ben) return; sw+=W.ben; n+=W.ben*(1+4*cv); return; }
+    sw+=W[c.k]; n+=W[c.k]*eff(card,i);
+  });
+  return sw?Math.round(100*n/(5*sw)):0;
+}
+/* ---------- elegibilidad y costo ---------- */
+function issues(card,a){
+  const hard=[], soft=[];
+  if(a.income>0 && card.incomeMin && a.income<card.incomeMin) hard.push('Pide ingreso mínimo de '+fmt(card.incomeMin)+' y tu ingreso indicado es menor');
+  if(a.hist==='none' && card.hist==='si') hard.push('Suele requerir historial de crédito');
+  if(a.hist==='none' && card.hist==='?') soft.push('No hay dato público sobre si pide historial');
+  return {hard,soft};
+}
+function cost(card,a){
+  const financing = a.pay!=='always' && a.balance>0;
+  if(financing){
+    const lo = a.balance*card.catLow/100, hi = a.balance*card.catHigh/100;
+    return {label:'Costo anual de financiar '+fmt(a.balance), value: Math.round(lo)===Math.round(hi)?fmt(lo):fmt(lo)+' a '+fmt(hi)};
+  }
+  if(card.fee===null || card.fee===undefined) return {label:'Anualidad', value:'Por confirmar'};
+  const f = card.fee*(card.iva?1.16:1);
+  return {label:'Anualidad al año', value: f===0?'$0':fmt(f)+(card.iva?' (con IVA)':'')};
+}
+function benName(k){ return (BEN.find(b=>b.k===k)||{label:k}).label; }
+function why(card,a){
+  const out=[];
+  const cv=benCov(card);
+  if(cv!==null && W.ben>=3){ const got=a.ben.filter(k=>(card.perks||[]).indexOf(k)>-1); out.push('<li><b>Beneficios:</b> cubre '+got.length+' de los '+a.ben.length+' que marcaste'+(got.length?' ('+got.map(benName).join(', ')+')':'')+'.</li>'); }
+  const items = crit.slice(0,NCRIT).map((c,i)=>({c,i,v:W[c.k]*eff(card,i)})).filter(x=>W[x.c.k]>=3 && eff(card,x.i)>=4).sort((x,y)=>y.v-x.v).slice(0,3);
+  return out.concat(items.map(x=>'<li><b>'+x.c.label+':</b> puntaje '+eff(card,x.i)+' de 5'+(card.est.indexOf(x.i)>-1?' (estimado)':'')+', y para ti pesa '+W[x.c.k]+' de 5.</li>'));
+}
+
+/* ---------- render resultados ---------- */
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+const SRC={of:'Oficial: Banxico y CONDUSEF, junio de 2026',em:'Carátula del emisor',re:'Referencia de comparador'};
+function catTxt(c){ return c.catLow===c.catHigh?c.catLow+'%':c.catLow+'% a '+c.catHigh+'%'; }
+function feeTxt(c){
+  if(c.fee===null||c.fee===undefined) return 'Por confirmar';
+  const f=c.fee*(c.iva?1.16:1); return f===0?'$0':fmt(f)+(c.iva?' (con IVA)':'')+' al año';
+}
+function benBlock(c){
+  if(c.basic) return '<p class="basic-note"><b>Ficha básica.</b> Solo hay CAT y comisión oficiales; esta guía no documenta sus beneficios. Confirma con el emisor.</p>';
+  const chosen=A.ben||[], has=c.perks||[], txt=c.perkText||{};
+  const got=chosen.filter(k=>has.indexOf(k)>-1), miss=chosen.filter(k=>has.indexOf(k)===-1), others=has.filter(k=>chosen.indexOf(k)===-1);
+  const li=(cls,mk,k,t)=>'<li class="'+cls+'"><span class="mk">'+mk+'</span><span><b>'+benName(k)+'</b>'+esc(t)+'</span></li>';
+  let h='';
+  if(chosen.length){
+    h+='<p class="ben-h">Lo que marcaste: cubre '+got.length+' de '+chosen.length+'</p><ul class="ben">'+
+       got.map(k=>li('y','✓',k,txt[k]||'Incluido')).join('')+miss.map(k=>li('n','–',k,'No documentado en esta guía')).join('')+'</ul>';
+  }
+  if(others.length) h+='<p class="ben-h">'+(chosen.length?'También ofrece':'Beneficios documentados')+'</p><ul class="ben">'+others.map(k=>li('y','✓',k,txt[k]||'Incluido')).join('')+'</ul>';
+  if(!has.length) h+='<p class="sub" style="margin:0 0 10px">Esta guía no documenta beneficios específicos para esta tarjeta.</p>';
+  return h;
+}
+function costBlock(c,a){
+  const co=cost(c,a);
+  const finance=co.label.indexOf('financiar')>-1;
+  return '<div class="costbox"><div class="cf"><small>CAT publicado</small><b>'+catTxt(c)+'</b><em>'+(SRC[c.catSrc]||SRC.re)+'</em></div>'+
+    '<div class="cf"><small>Anualidad (comisión por administración)</small><b>'+feeTxt(c)+'</b></div>'+
+    (finance?'<div class="cf"><small>'+co.label+'</small><b>'+co.value+'</b><em>Estimado con el CAT publicado</em></div>':'')+'</div>';
+}
+function warnChips(it){ return it.iss.concat(it.soft).map(t=>'<span class="chip-w">'+esc(t)+'</span>').join(' '); }
+function tileBody(it,a){ return '<div class="tile-grid"><div>'+benBlock(it.c)+'</div><div>'+costBlock(it.c,a)+'</div></div>'+(warnChips(it)?'<div style="margin-top:8px">'+warnChips(it)+'</div>':'')+'<p class="note" style="margin:10px 0 0">'+esc(it.c.note)+'</p>'; }
+function tileHtml(it,i,a){
+  const c=it.c;
+  return '<div class="tile-h"><div><p class="kick">'+(i===0?'Tu mejor coincidencia':'Coincidencia '+(i+1))+'</p><h3>'+esc(c.name)+'</h3><span class="pill">'+esc(c.issuer||c.group)+'</span>'+(c.tier?'<span class="pill">'+esc(c.tier)+'</span>':'')+(c.basic?'<span class="pill basic">ficha básica</span>':'')+'</div>'+
+    '<div class="aff">'+it.a+'<small>afinidad de 100</small></div></div>'+tileBody(it,a);
+}
+function rowHtml(it,i,a){
+  const c=it.c, cv=benCov(c), nb=(A.ben||[]).length;
+  const sub='CAT '+catTxt(c)+' · '+feeTxt(c)+(nb&&!c.basic?' · cubre '+Math.round(cv*nb)+' de '+nb+' beneficios':'');
+  return '<button class="head" type="button" aria-expanded="'+(open===c.name)+'"><span class="rank">'+(i+4)+'</span><span><span class="name">'+esc(c.name)+'<span class="tag">'+esc(c.issuer||c.group)+(c.basic?' · ficha básica':'')+'</span></span><span class="sublin">'+esc(sub)+'</span><div class="meter"><i style="width:'+it.a+'%"></i></div></span><span class="score">'+it.a+'</span></button>'+
+    '<div class="detail">'+tileBody(it,a)+'</div>';
+}
+let SHOW=20, LAST=[];
+function render(){
+  const a=answers();
+  $('bal-wrap').hidden = a.pay==='always';
+  $('benlevel-v').textContent = a.benLevel; $('benlevel').disabled = !a.ben.length;
+  if(!manual){ W = weightsFrom(a); syncSliders(); }
+  A=a;
+  const q=($('q').value||'').trim().toLowerCase(), onlyFull=$('onlyFull').checked;
+  let pool=DB.filter(c=>(!q||(c.name+' '+(c.issuer||'')+' '+(c.tier||'')).toLowerCase().indexOf(q)>-1)&&(!onlyFull||!c.basic));
+  const all = pool.map(c=>{ const qq=issues(c,a); return {c,a:affinity(c),iss:qq.hard,soft:qq.soft}; }).sort((x,y)=>y.a-x.a||x.c.name.localeCompare(y.c.name,'es'));
+  const hide=$('hide').checked;
+  const ok = hide?all.filter(x=>!x.iss.length):all, bad = hide?all.filter(x=>x.iss.length):[];
+  LAST=ok.map(x=>x.c);
+  const top=ok.slice(0,3), rest=ok.slice(3);
+  $('count').textContent=ok.length+' tarjetas'+(bad.length?' · '+bad.length+' no cumplen tus datos':'');
+  const tiles=$('tiles'); tiles.innerHTML='';
+  if(!top.length) tiles.innerHTML='<p class="sub">No hay tarjetas con ese filtro.</p>';
+  top.forEach((it,i)=>{ const d=document.createElement('div'); d.className='tile'+(i===0?' first':''); d.innerHTML=tileHtml(it,i,a); tiles.appendChild(d); });
+  const shown=rest.slice(0,SHOW);
+  const ol=$('results'); ol.innerHTML='';
+  shown.forEach((it,i)=>{ const li=document.createElement('li'); li.className='row'+(open===it.c.name?' open':''); li.innerHTML=rowHtml(it,i,a); li.querySelector('.head').addEventListener('click',()=>{ open = open===it.c.name?null:it.c.name; render(); }); ol.appendChild(li); });
+  const more=$('more'); more.hidden = rest.length<=SHOW; more.textContent='Mostrar más tarjetas ('+(rest.length-SHOW)+' restantes)';
+  $('out-wrap').hidden = !bad.length;
+  const ob=$('out'); ob.innerHTML='';
+  bad.slice(0,15).forEach((it,i)=>{ const li=document.createElement('li'); li.className='row'+(open===it.c.name?' open':''); li.innerHTML=rowHtml(it,i,a).replace('>'+(i+4)+'<','>–<'); li.querySelector('.head').addEventListener('click',()=>{ open = open===it.c.name?null:it.c.name; render(); }); ob.appendChild(li); });
+  updPromoBtn();
+}
+/* ---------- promociones vigentes ---------- */
+const PROMO_KEY='tarjetas.promos.v2';
+let PROMOS=clone(DEFAULT.promos), NOTICE=DEFAULT.notice, PROMO_ASOF=DEFAULT.promosAsOf;
+function loadPromos(){ try{ const p=JSON.parse(localStorage.getItem(PROMO_KEY)); if(p&&Array.isArray(p.promos)){ PROMOS=p.promos; NOTICE=p.notice||''; PROMO_ASOF=p.asOf||PROMO_ASOF; } }catch(e){} }
+function savePromos(){ try{ localStorage.setItem(PROMO_KEY,JSON.stringify({promos:PROMOS,notice:NOTICE,asOf:PROMO_ASOF})); }catch(e){} }
+function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function isActive(p){ const t=todayStr(); return (!p.start||p.start<=t)&&(!p.end||p.end>=t); }
+function issuerKey(t){ return t==='Amex'?'American Express':t; }
+function promoCards(p,pool){
+  const toks=String(p.cards||'').split(',').map(x=>issuerKey(x.trim()).toLowerCase());
+  return pool.filter(c=>toks.indexOf(c.name.toLowerCase())>-1||toks.indexOf((c.issuer||'').toLowerCase())>-1);
+}
+function updPromoBtn(){
+  const top=LAST.slice(0,10);
+  const n=PROMOS.filter(p=>isActive(p)&&promoCards(p,top).length).length;
+  $('promoBtn').textContent='Promociones vigentes'+(n?' ('+n+' para tus coincidencias)':'');
+}
+function vigText(p){
+  if(p.start&&p.end) return 'Del '+fdate(p.start)+' al '+fdate(p.end);
+  if(p.end) return 'Hasta el '+fdate(p.end);
+  if(p.start) return 'Desde el '+fdate(p.start)+' (término por confirmar)';
+  return 'Vigencia por confirmar';
+}
+function renderPromos(){
+  $('promoAsOf').textContent='Vigentes al '+fdate(todayStr())+(PROMO_ASOF?' · revisadas el '+fdate(PROMO_ASOF):'');
+  $('promoNotice').textContent=NOTICE||'';
+  const mine=$('promoMine').checked, pool=mine?LAST.slice(0,10):DB;
+  const active=PROMOS.filter(isActive).map(p=>({p,m:promoCards(p,pool)}));
+  const shown=active.filter(x=>!mine||x.m.length);
+  const box=$('promoList'); box.innerHTML='';
+  shown.forEach(({p,m})=>{
+    const d=document.createElement('div'); d.className='promo';
+    const ver=p.verified===true?'<span class="badge new" title="La página del banco todavía la menciona">Verificada '+esc(p.verified_at?fdate(p.verified_at):'')+'</span>':(p.verified===false?'<span class="badge" style="background:var(--warn-bg);color:var(--warn)">No se encontró en la página</span>':'');
+    d.innerHTML='<h3>'+esc(p.title)+ver+'</h3><div class="iss">'+esc(p.issuer)+' · '+esc(vigText(p))+'</div><p>'+esc(p.detail)+'</p><p class="cond">'+esc(p.cond||'')+' Fuente: '+esc(p.source||'')+'.</p>'+
+      '<div class="mchips" aria-label="Tarjetas de tus coincidencias a las que aplica">'+m.slice(0,6).map(c=>'<span>'+esc(c.name)+'</span>').join('')+(m.length>6?'<span>+'+(m.length-6)+' más</span>':'')+'</div>';
+    box.appendChild(d);
+  });
+  const hidden=active.length-shown.length;
+  if(!shown.length) box.innerHTML='<p class="sub">'+(mine?'Ninguna promoción vigente aplica a tus 10 mejores coincidencias. Desmarca el filtro para ver todas las vigentes.':'No hay promociones vigentes registradas hoy.')+'</p>';
+  else if(hidden>0){ const p=document.createElement('p'); p.className='sub'; p.textContent='Hay '+hidden+' promoción'+(hidden>1?'es':'')+' vigente'+(hidden>1?'s':'')+' más para otros bancos. Desmarca el filtro para verlas.'; box.appendChild(p); }
+}
+function openPromos(){
+  renderPromos(); const d=$('promoDlg');
+  if(d.showModal) d.showModal(); else d.setAttribute('open','');
+}
+/* ---------- sliders ---------- */
+function buildSliders(){
+  const box=$('sliders'); box.innerHTML='';
+  crit.forEach(c=>{
+    const d=document.createElement('div'); d.className='crit';
+    d.innerHTML='<label for="s-'+c.k+'"><span>'+c.label+'</span><span class="val" id="sv-'+c.k+'">0</span></label><input type="range" min="0" max="5" step="1" id="s-'+c.k+'">';
+    box.appendChild(d);
+    d.querySelector('input').addEventListener('input',e=>{ manual=true; W[c.k]=+e.target.value; $('sv-'+c.k).textContent=W[c.k]; render(); });
+  });
+}
+function syncSliders(){ crit.forEach(c=>{ $('s-'+c.k).value=W[c.k]; $('sv-'+c.k).textContent=W[c.k]; }); }
+
+/* ---------- editor ---------- */
+const GROUPS=['General','General y jóvenes','Jóvenes','Adultos','Con anualidad','Otras evaluadas','Catálogo oficial'];
+function buildTable(){
+  const th=['Tarjeta','Grupo','Emisor','Ficha básica','CAT mín. %','CAT máx. %','Anualidad $','IVA aparte','Ingreso mín. $','Historial'].concat(crit.slice(0,NCRIT).map(c=>c.label)).concat(BEN.map(b=>'Tiene: '+b.label)).concat(['Nota','']);
+  $('tbl').tHead.innerHTML='<tr>'+th.map(t=>'<th>'+t+'</th>').join('')+'</tr>';
+  const tb=$('tbl').tBodies[0]; tb.innerHTML='';
+  DB.forEach((c,r)=>{
+    const tr=document.createElement('tr');
+    const num=(v,min,max,step)=>'value="'+(v===null||v===undefined?'':v)+'" min="'+min+'" max="'+max+'" step="'+step+'"';
+    tr.innerHTML='<td class="nm"><input type="text" data-f="name" value="'+esc(c.name)+'" aria-label="Nombre de la tarjeta"></td>'+
+     '<td><select data-f="group" aria-label="Grupo">'+GROUPS.map(g=>'<option'+(g===c.group?' selected':'')+'>'+g+'</option>').join('')+'</select></td>'+
+     '<td><input type="text" data-f="issuer" value="'+esc(c.issuer||'')+'" aria-label="Emisor" style="width:110px"></td>'+
+     '<td><input type="checkbox" data-f="basic"'+(c.basic?' checked':'')+' aria-label="Ficha básica" style="accent-color:var(--deep)"></td>'+
+     '<td><input type="number" data-f="catLow" '+num(c.catLow,0,5000,0.1)+' aria-label="CAT mínimo"></td>'+
+     '<td><input type="number" data-f="catHigh" '+num(c.catHigh,0,5000,0.1)+' aria-label="CAT máximo"></td>'+
+     '<td><input type="number" data-f="fee" '+num(c.fee,0,50000,10)+' aria-label="Anualidad" placeholder="?"></td>'+
+     '<td><input type="checkbox" data-f="iva"'+(c.iva?' checked':'')+' aria-label="IVA aparte" style="accent-color:var(--deep)"></td>'+
+     '<td><input type="number" data-f="incomeMin" '+num(c.incomeMin,0,500000,500)+' aria-label="Ingreso mínimo" placeholder="sin dato"></td>'+
+     '<td><select data-f="hist" aria-label="Historial"><option value="no"'+(c.hist==='no'?' selected':'')+'>No lo pide</option><option value="si"'+(c.hist==='si'?' selected':'')+'>Lo pide</option><option value="?"'+(c.hist==='?'?' selected':'')+'>Sin dato</option></select></td>'+
+     c.scores.map((s,j)=>'<td class="sc"><input type="number" data-s="'+j+'" min="1" max="5" step="1" value="'+s+'" aria-label="'+crit[j].label+'"></td>').join('')+
+     BEN.map(b=>'<td class="sc"><input type="checkbox" data-p="'+b.k+'"'+((c.perks||[]).indexOf(b.k)>-1?' checked':'')+' aria-label="Tiene '+b.label+'" style="accent-color:var(--deep)"></td>').join('')+
+     '<td class="nt"><input type="text" data-f="note" value="'+esc(c.note)+'" aria-label="Nota"></td>'+
+     '<td><button class="btn" type="button" data-del="1" aria-label="Quitar '+esc(c.name)+'">Quitar</button></td>';
+    tr.dataset.name=(c.name+' '+(c.issuer||'')).toLowerCase();
+    tr.addEventListener('change',e=>{
+      const t=e.target, f=t.dataset.f, s=t.dataset.s, pk=t.dataset.p;
+      if(pk){ const set=new Set(DB[r].perks||[]); if(t.checked) set.add(pk); else set.delete(pk); DB[r].perks=[...set]; }
+      else if(f){
+        let v = t.type==='checkbox'?t.checked:t.value;
+        if(['catLow','catHigh','fee','incomeMin'].indexOf(f)>-1) v = t.value===''?null:Math.max(0,+t.value);
+        DB[r][f]=v;
+      } else if(s!==undefined){ const n=Math.max(1,Math.min(5,Math.round(+t.value)||3)); t.value=n; DB[r].scores[+s]=n; DB[r].est=DB[r].est.filter(x=>x!==+s); }
+      save(); render();
+    });
+    tr.querySelector('[data-del]').addEventListener('click',()=>{ DB.splice(r,1); save(); buildTable(); render(); });
+    tb.appendChild(tr);
+  });
+  filterEditor();
+}
+function say(t){ $('msg').textContent=t; }
+function filterEditor(){
+  const q=($('edq').value||'').trim().toLowerCase(); let n=0;
+  [...$('tbl').tBodies[0].rows].forEach(tr=>{ const ok=!q||tr.dataset.name.indexOf(q)>-1; tr.hidden=!ok; if(ok) n++; });
+  $('edcount').textContent=n+' de '+DB.length+' tarjetas';
+}
+/* ---------- actualizar datos ---------- */
+const META_KEY='tarjetas.meta.v1';
+let META={updated:DEFAULT.updated, origin:'Datos de la guía'}; let PENDING=null;
+function loadMeta(){ try{ const m=JSON.parse(localStorage.getItem(META_KEY)); if(m&&m.updated) META=m; }catch(e){} }
+function saveMeta(){ try{ localStorage.setItem(META_KEY,JSON.stringify(META)); }catch(e){} }
+function fdate(d){ const t=new Date(d+'T12:00:00'); return isNaN(t)?d:t.toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'}); }
+function showMeta(){
+  const t='Datos al '+fdate(META.updated)+' · '+META.origin;
+  $('meta-top').textContent=t; $('meta-txt').textContent=t+'. Tarjetas en la base: '+DB.length+'.';
+}
+function umsg(t,err){ const m=$('updMsg'); m.textContent=t; m.className='sub '+(err?'errmsg':'okmsg'); }
+const SET_FIELDS=['catLow','catHigh','fee','iva','incomeMin','hist','note','group','issuer','tier','basic'];
+const FLABEL={issuer:'Emisor',tier:'Nivel',basic:'Ficha básica',catLow:'CAT mínimo (%)',catHigh:'CAT máximo (%)',fee:'Anualidad ($)',iva:'IVA aparte',incomeMin:'Ingreso mínimo ($)',hist:'Historial',note:'Nota',group:'Grupo',perks:'Beneficios',scores:'Puntajes'};
+function validField(f,v){
+  if(['catLow','catHigh'].includes(f)) return typeof v==='number'&&v>=0&&v<=5000;
+  if(['fee','incomeMin'].includes(f)) return v===null||(typeof v==='number'&&v>=0&&v<=1000000);
+  if(f==='iva'||f==='basic') return typeof v==='boolean';
+  if(f==='issuer'||f==='tier') return typeof v==='string'&&v.length<=40;
+  if(f==='hist') return ['no','si','?'].includes(v);
+  if(f==='note'||f==='group') return typeof v==='string'&&v.length<=200;
+  return true;
+}
+function showVal(f,v){
+  if(v===null||v===undefined) return 'sin dato';
+  if(Array.isArray(v)) return f==='perks'?(v.length?BEN.filter(b=>v.indexOf(b.k)>-1).map(b=>b.label).join(', '):'ninguno'):v.join('-');
+  if(f==='iva') return v?'sí':'no';
+  if(f==='hist') return v==='no'?'no lo pide':(v==='si'?'lo pide':'sin dato');
+  return String(v);
+}
+function normFeed(j){
+  const isArr=Array.isArray(j);
+  const arr=isArr?j:(j&&Array.isArray(j.cards)?j.cards:[]);
+  const cards=arr.filter(c=>c&&typeof c.name==='string'&&c.name.trim());
+  const promos=(!isArr&&j&&Array.isArray(j.promos))?j.promos:null;
+  if(!cards.length&&!promos) throw new Error('El archivo no contiene tarjetas (“cards”) ni promociones (“promos”).');
+  return {cards, promos, notice:(!isArr&&j&&typeof j.notice==='string')?j.notice:null, promosAsOf:(!isArr&&j&&typeof j.promos_as_of==='string')?j.promos_as_of:null,
+    updated:(!isArr&&j&&typeof j.updated==='string')?j.updated:null, failed:(!isArr&&j&&j.failed)||[], fetchedAt:(!isArr&&j&&j.fetched_at)||null, cached:!!(j&&j.cached), wait:(j&&j.next_refresh_in_seconds)||0};
+}
+function planChanges(feed){
+  const out=[];
+  feed.cards.forEach(fc=>{
+    const idx=DB.findIndex(c=>c.name.toLowerCase()===fc.name.trim().toLowerCase());
+    if(idx<0){
+      if(Array.isArray(fc.scores)&&fc.scores.length===8&&fc.scores.every(n=>Number.isInteger(n)&&n>=1&&n<=5)) out.push({type:'add',name:fc.name.trim(),card:fc});
+      else out.push({type:'skip',name:fc.name.trim(),reason:'tarjeta nueva sin los 8 puntajes (1 a 5); no se puede agregar'});
+      return;
+    }
+    const cur=DB[idx], diffs=[], bad=[];
+    SET_FIELDS.forEach(f=>{
+      if(fc[f]===undefined) return;
+      if(!validField(f,fc[f])){ bad.push(FLABEL[f]); return; }
+      if(JSON.stringify(fc[f])!==JSON.stringify(cur[f]===undefined?null:cur[f])) diffs.push({f,from:cur[f],to:fc[f]});
+    });
+    if(Array.isArray(fc.perks)){ const ok=fc.perks.every(k=>BEN.some(b=>b.k===k)); if(!ok) bad.push('Beneficios'); else if([...(cur.perks||[])].sort().join()!==[...fc.perks].sort().join()) diffs.push({f:'perks',from:cur.perks||[],to:fc.perks}); }
+    if(Array.isArray(fc.scores)){ const ok=fc.scores.length===8&&fc.scores.every(n=>Number.isInteger(n)&&n>=1&&n<=5); if(!ok) bad.push('Puntajes'); else if(fc.scores.join()!==cur.scores.join()) diffs.push({f:'scores',from:cur.scores,to:fc.scores}); }
+    if(diffs.length) out.push({type:'update',idx,name:cur.name,diffs});
+    if(bad.length) out.push({type:'skip',name:cur.name,reason:'valores no válidos ignorados en: '+bad.join(', ')});
+  });
+  if(feed.promos){
+    const okp=p=>p&&typeof p.id==='string'&&typeof p.title==='string'&&typeof p.issuer==='string'&&typeof p.cards==='string';
+    const clean=feed.promos.filter(okp), cur=PROMOS;
+    const sig=p=>JSON.stringify([p.title,p.detail,p.cond,p.start||null,p.end||null,p.cards,p.issuer,p.verified===undefined?null:p.verified]);
+    const added=clean.filter(p=>!cur.find(o=>o.id===p.id)), removed=cur.filter(o=>!clean.find(p=>p.id===o.id));
+    const changed=clean.filter(p=>{ const o=cur.find(x=>x.id===p.id); return o&&sig(o)!==sig(p); });
+    const nChg=feed.notice!==null&&feed.notice!==NOTICE;
+    if(added.length||removed.length||changed.length||nChg) out.push({type:'promos',name:'Promociones vigentes',clean,added,removed,changed,notice:feed.notice,asOf:feed.promosAsOf,nChg});
+  }
+  return out;
+}
+function renderDiff(){
+  const box=$('diff'); box.innerHTML='';
+  const ch=PENDING?PENDING.changes:[];
+  const real=ch.filter(c=>c.type!=='skip');
+  if(!PENDING){ box.innerHTML='<p class="sub" style="margin:0">Todavía no has cargado datos.</p>'; $('diffBtns').hidden=true; return; }
+  if(!real.length) box.innerHTML='<p class="sub" style="margin:0">Los datos del archivo coinciden con los que ya tienes: no hay cambios.</p>';
+  ch.forEach((c,i)=>{
+    const d=document.createElement('div'); d.className='chg';
+    if(c.type==='skip'){ d.innerHTML='<b>'+esc(c.name)+'</b><ul><li>'+esc(c.reason)+'</li></ul>'; d.style.opacity='.8'; box.appendChild(d); return; }
+    if(c.type==='promos'){
+      const li=[]; if(c.added.length) li.push('<li><b>Nuevas:</b> '+c.added.map(p=>esc(p.title)).join('; ')+'</li>'); if(c.removed.length) li.push('<li><b>Retiradas:</b> '+c.removed.map(p=>esc(p.title)).join('; ')+'</li>'); if(c.changed.length) li.push('<li><b>Actualizadas:</b> '+c.changed.map(p=>esc(p.title)).join('; ')+'</li>'); if(c.nChg) li.push('<li><b>Aviso:</b> '+esc(c.notice)+'</li>');
+      d.innerHTML='<label><input type="checkbox" data-i="'+i+'" checked style="accent-color:var(--deep);margin-top:3px"><span>Promociones vigentes</span></label><ul>'+li.join('')+'</ul>'; box.appendChild(d); return;
+    }
+    const items=c.type==='add'?'<li>Se agrega como tarjeta nueva (grupo: '+esc(c.card.group||'General')+').</li>':c.diffs.map(x=>'<li><b>'+FLABEL[x.f]+':</b> '+esc(showVal(x.f,x.from))+' → '+esc(showVal(x.f,x.to))+'</li>').join('');
+    d.innerHTML='<label><input type="checkbox" data-i="'+i+'" checked style="accent-color:var(--deep);margin-top:3px"><span>'+esc(c.name)+(c.type==='add'?'<span class="tag-add">nueva</span>':'')+'</span></label><ul>'+items+'</ul>';
+    box.appendChild(d);
+  });
+  if(PENDING.failed&&PENDING.failed.length){ const p=document.createElement('p'); p.className='sub'; p.textContent='La consulta no pudo leer: '+PENDING.failed.join(', ')+'. Esos datos se conservan.'; box.appendChild(p); }
+  $('diffBtns').hidden=!real.length;
+}
+function loadFeed(j,origin){
+  try{ const feed=normFeed(j); PENDING={changes:planChanges(feed),updated:feed.updated,failed:feed.failed,origin,promosAsOf:feed.promosAsOf};
+    renderDiff();
+    const n=PENDING.changes.filter(c=>c.type!=='skip').length;
+    let t=n?('Se detectaron cambios en '+n+' elemento'+(n>1?'s':'')+'. Revisa y aplica los que quieras.'):'Datos leídos: no hay cambios que aplicar.';
+    if(feed.fetchedAt) t+=' Consulta del '+feed.fetchedAt.replace('T',' a las ')+'.';
+    if(feed.cached&&feed.wait) t+=' La API no volvió a consultar la web porque se refrescó hace poco (faltan '+feed.wait+' s para poder refrescar de nuevo); estos son los últimos datos guardados.';
+    umsg(t,false);
+  }catch(e){ PENDING=null; renderDiff(); umsg(e.message||'No se pudo leer el archivo.',true); }
+}
+async function fetchFeed(){
+  let url=$('feedUrl').value.trim(), u;
+  try{ u=new URL(url,location.href); }catch(e){ umsg('Escribe una dirección válida, por ejemplo http://127.0.0.1:8765/api/datos',true); return; }
+  if(!/^https?:$/.test(u.protocol)){ umsg('La dirección debe empezar con http:// o https://',true); return; }
+  if(/\/api\/datos\/?$/.test(u.pathname)&&!u.searchParams.has('refresh')) u.searchParams.set('refresh','1');
+  try{ localStorage.setItem('tarjetas.feedurl.v2',$('feedUrl').value.trim()); }catch(e){}
+  umsg('Consultando… (si la API visita las páginas de los bancos puede tardar hasta un minuto)',false); $('fetchFeed').disabled=true;
+  try{
+    const r=await fetch(u.toString(),{cache:'no-store'});
+    let j=null; try{ j=await r.json(); }catch(e){}
+    if(!r.ok) throw new Error((j&&j.error)||('El servidor respondió '+r.status+'. Revisa la dirección.'));
+    if(!j) throw new Error('La dirección no devolvió un JSON válido.');
+    loadFeed(j,u.origin+u.pathname);
+  }catch(e){
+    const msg=(e&&e.message)||'';
+    umsg(/Failed to fetch|NetworkError|Load failed/i.test(msg)||e instanceof TypeError
+      ?'No se pudo conectar. Revisa que la API esté en marcha (python api_tarjetas.py). Esta versión publicada en línea no puede consultar otros sitios ni tu computadora: abre el buscador desde la API (http://127.0.0.1:8765) o desde el archivo HTML descargado. También puedes cargar un archivo con la opción 2.'
+      :msg,true);
+  }finally{ $('fetchFeed').disabled=false; }
+}
+function applyDiff(){
+  if(!PENDING) return;
+  const sel=[...document.querySelectorAll('#diff input[type=checkbox]:checked')].map(i=>PENDING.changes[+i.dataset.i]);
+  let n=0;
+  sel.forEach(c=>{
+    if(c.type==='add'){ const f=c.card; DB.push({name:c.name,group:f.group||'General',issuer:f.issuer||'',tier:f.tier||'',basic:!!f.basic,catSrc:'re',perkText:{},scores:f.scores.slice(),est:[],perks:Array.isArray(f.perks)?f.perks.filter(k=>BEN.some(b=>b.k===k)):[],note:f.note||'',catLow:typeof f.catLow==='number'?f.catLow:80,catHigh:typeof f.catHigh==='number'?f.catHigh:(typeof f.catLow==='number'?f.catLow:80),fee:f.fee===undefined?null:f.fee,iva:!!f.iva,incomeMin:f.incomeMin===undefined?null:f.incomeMin,hist:f.hist||'?'}); n++; }
+    else if(c.type==='promos'){ PROMOS=c.clean; if(c.notice!==null&&c.notice!==undefined) NOTICE=c.notice; if(c.asOf) PROMO_ASOF=c.asOf; savePromos(); n++; }
+    else { const card=DB.find(x=>x.name===c.name); if(!card) return; c.diffs.forEach(d=>{ card[d.f]=d.to; if(d.f==='scores') card.est=[]; }); n++; }
+  });
+  if(!n){ umsg('No seleccionaste ningún cambio.',true); return; }
+  META={updated:PENDING.updated||new Date().toISOString().slice(0,10),origin:'actualizado desde '+(PENDING.origin||'archivo')};
+  save(); saveMeta(); PENDING=null; renderDiff(); buildTable(); render(); showMeta(); updPromoBtn();
+  umsg('Listo: se aplicaron '+n+' cambio'+(n>1?'s':'')+'. Ya se reflejan en las recomendaciones.',false);
+}
+function wireUpdate(){
+  $('goUpd').addEventListener('click',()=>showTab('upd'));
+  $('fetchFeed').addEventListener('click',fetchFeed);
+  $('feedUrl').addEventListener('keydown',e=>{ if(e.key==='Enter') fetchFeed(); });
+  let def=(/^https?:$/.test(location.protocol)&&!/(claude\.(ai|com)|claudeusercontent)/i.test(location.hostname))?location.origin+'/api/datos':'http://127.0.0.1:8765/api/datos';
+  try{ const u=localStorage.getItem('tarjetas.feedurl.v2'); if(u) def=u; }catch(e){}
+  $('feedUrl').value=def;
+  $('feedFile').addEventListener('change',e=>{
+    const f=e.target.files[0]; if(!f) return;
+    if(f.size>2000000){ umsg('El archivo es demasiado grande (máximo 2 MB).',true); return; }
+    const r=new FileReader();
+    r.onload=()=>{ try{ loadFeed(JSON.parse(r.result),f.name); }catch(err){ PENDING=null; renderDiff(); umsg('No se pudo leer el archivo: no es un JSON válido.',true); } };
+    r.onerror=()=>umsg('No se pudo abrir el archivo.',true);
+    r.readAsText(f);
+    e.target.value='';
+  });
+  $('applyDiff').addEventListener('click',applyDiff);
+  $('dropDiff').addEventListener('click',()=>{ PENDING=null; renderDiff(); umsg('Cambios descartados.',false); });
+}
+function wireEditor(){
+  $('add').addEventListener('click',()=>{ DB.push({name:'Nueva tarjeta',group:'General',issuer:'',tier:'',basic:false,catSrc:'re',perkText:{},scores:[3,3,3,3,3,3,3,3],perks:[],est:[],note:'Describe aquí lo más importante',catLow:80,catHigh:80,fee:0,iva:false,incomeMin:null,hist:'?'}); save(); buildTable(); render(); say('Tarjeta agregada al final de la tabla.'); });
+  $('restore').addEventListener('click',()=>{ DB=clone(DEFAULT.cards); META={updated:DEFAULT.updated,origin:'Datos de la guía'}; save(); saveMeta(); buildTable(); render(); showMeta(); say('Datos originales restaurados.'); });
+  $('export').addEventListener('click',()=>{ $('json').value=JSON.stringify(DB,null,1); $('json').select(); say('Copia el texto de abajo para guardarlo.'); });
+  $('import').addEventListener('click',()=>{
+    try{ const a=JSON.parse($('json').value); if(!Array.isArray(a)||!a.length) throw 0;
+      a.forEach(c=>{ if(!c.name||!Array.isArray(c.scores)||c.scores.length!==8) throw 0; c.est=c.est||[]; c.perks=c.perks||[]; c.perkText=c.perkText||{}; c.issuer=c.issuer||''; c.tier=c.tier||''; c.catSrc=c.catSrc||'re'; c.group=c.group||'General'; c.hist=c.hist||'?'; c.note=c.note||''; });
+      DB=a; save(); buildTable(); render(); say('Datos cargados: '+a.length+' tarjetas.');
+    }catch(e){ say('No se pudo leer el JSON. Revisa que tenga 8 puntajes por tarjeta.'); }
+  });
+}
+/* ---------- beneficios ---------- */
+function buildBen(){
+  const box=$('benopts'); box.innerHTML='';
+  BEN.forEach(b=>{
+    const l=document.createElement('label'); l.title=b.hint;
+    l.innerHTML='<input type="checkbox" value="'+b.k+'">'+b.label;
+    const i=l.querySelector('input'); i.defaultChecked = BEN_DEFAULT.indexOf(b.k)>-1; i.checked=i.defaultChecked;
+    box.appendChild(l);
+  });
+}
+/* ---------- init ---------- */
+function showTab(t){
+  ['find','edit','upd'].forEach(k=>{ $('p-'+k).hidden=k!==t; $('t-'+k).setAttribute('aria-selected',k===t); });
+}
+load(); loadMeta(); loadPromos(); DB.forEach(c=>{ if(!Array.isArray(c.perks)) c.perks=[]; if(!c.perkText) c.perkText={}; if(c.catSrc===undefined) c.catSrc='re'; }); buildBen(); buildSliders(); buildTable(); wireEditor(); wireUpdate(); render(); showMeta();
+$('t-find').addEventListener('click',()=>showTab('find')); $('t-edit').addEventListener('click',()=>showTab('edit')); $('t-upd').addEventListener('click',()=>showTab('upd'));
+$('form').addEventListener('input',e=>{ if(!e.target.matches('#sliders input')){ manual=false; render(); } });
+$('form').addEventListener('change',e=>{ if(!e.target.matches('#sliders input')){ manual=false; render(); } });
+$('reset').addEventListener('click',()=>{ $('form').reset(); $('balance').value=5000; manual=false; render(); });
+$('promoBtn').addEventListener('click',openPromos); $('promoClose').addEventListener('click',()=>$('promoDlg').close&&$('promoDlg').close()); $('promoMine').addEventListener('change',renderPromos);
+$('q').addEventListener('input',()=>{ SHOW=20; render(); }); $('onlyFull').addEventListener('change',()=>{ SHOW=20; render(); }); $('more').addEventListener('click',()=>{ SHOW+=30; render(); }); $('edq').addEventListener('input',filterEditor);
+$('theme').addEventListener('click',()=>{ const cur=document.documentElement.getAttribute('data-theme'); const dark=cur?cur==='dark':matchMedia('(prefers-color-scheme: dark)').matches; document.documentElement.setAttribute('data-theme',dark?'light':'dark'); });
+</script>
+</body>
+</html>
